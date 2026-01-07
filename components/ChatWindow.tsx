@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Message, Persona } from '../types';
+import { Message, Persona, Note } from '../types';
 import { PERSONA_CONFIGS } from '../constants';
 
 interface ChatWindowProps {
@@ -9,9 +9,10 @@ interface ChatWindowProps {
   onSendMessage: (text: string) => void;
   isLoading: boolean;
   onToggleSidebar?: () => void;
+  activeNote?: Note;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, activePersona, onSendMessage, isLoading, onToggleSidebar }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, activePersona, onSendMessage, isLoading, onToggleSidebar, activeNote }) => {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -36,29 +37,43 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, activePersona, onSend
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#2dd4bf 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }}></div>
 
       {/* Header */}
-      <div className="px-4 lg:px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-black/40 backdrop-blur-md z-50">
-        <div className="flex items-center space-x-3 min-w-0 flex-1">
-          <button 
-            onClick={onToggleSidebar}
-            className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-cyan-400 transition-colors shrink-0"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          
+      <div className="px-4 lg:px-6 py-4 border-b border-slate-800 flex flex-col space-y-3 bg-black/40 backdrop-blur-md z-50">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
-            <div className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${persona.color.split(' ')[1]}`}></div>
-            <div className="min-w-0 flex-1">
-              <h2 className="font-bold text-slate-100 text-[11px] lg:text-sm mono tracking-tight leading-tight whitespace-normal break-words">
-                {persona.description}
-              </h2>
-              <p className="text-[9px] text-slate-500 mono uppercase tracking-widest truncate">
-                Matrix: <span className={persona.color.split(' ')[1]}>{activePersona}</span>
-              </p>
+            <button 
+              onClick={onToggleSidebar}
+              className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-cyan-400 transition-colors shrink-0"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            
+            <div className="flex items-center space-x-3 min-w-0 flex-1">
+              <div className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${persona.color.split(' ')[1]}`}></div>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-bold text-slate-100 text-[11px] lg:text-sm mono tracking-tight leading-tight whitespace-normal break-words">
+                  {persona.description}
+                </h2>
+                <p className="text-[9px] text-slate-500 mono uppercase tracking-widest truncate">
+                  Matrix: <span className={persona.color.split(' ')[1]}>{activePersona}</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Active Context Note Badge */}
+        {activeNote && (
+          <div className="flex items-center space-x-2 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 rounded-sm animate-in fade-in slide-in-from-top-1 duration-300">
+            <svg className="w-3 h-3 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="text-[9px] mono text-cyan-400 font-bold uppercase tracking-widest truncate flex-1">
+              Injected_Context: {activeNote.title}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -119,7 +134,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, activePersona, onSend
         )}
       </div>
 
-      {/* Input - Adjusting for bottom safe area */}
       <form onSubmit={handleSubmit} className="px-4 pt-4 border-t border-slate-800 bg-black/40 z-10 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:pb-4">
         <div className="relative">
           <input
