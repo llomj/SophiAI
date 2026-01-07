@@ -1,3 +1,4 @@
+
 import { SophiData, Persona } from '../types';
 import { TJUMP_DATA } from '../persona_forge/tjump';
 import { USER_IDENTITY_DATA } from '../user_identity_forge/identity';
@@ -28,7 +29,7 @@ export const loadSophiData = (): SophiData => {
     concepts: [],
     notes: [],
     currentConversationId: null,
-    activePersona: Persona.STOCIC,
+    activePersona: Persona.STOIC,
     activeContextNoteId: null,
     personaAugmentations: { 
       [Persona.TJUMP]: TJUMP_DATA 
