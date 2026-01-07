@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-import { Persona, Message, Conversation } from "../types";
+import { Persona, Message, Conversation, Concept } from "../types";
 import { PERSONA_CONFIGS } from "../constants";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -27,18 +27,16 @@ export const getPhilosophicalResponse = async (
   
   let systemInstruction = personaConfig.instruction + "\n" + UNIVERSAL_DEBATE_PROTOCOL;
   
-  // 1. STATIC USER PROMPT (Identity Directive)
   if (userPrompt) {
     systemInstruction += `\n\n[GLOBAL_USER_PROFILE_DIRECTIVE]:
 "${userPrompt}"
 (Always apply these behavioral rules to your output style.)`;
   }
 
-  // 2. CROSS-MATRIX NEURAL RECALL (Historical Memory)
   const otherConversations = allConversations
     .filter(c => c.persona !== persona && c.messages.length > 0)
     .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 3); // Get 3 most recent sessions from other personas
+    .slice(0, 3);
 
   if (otherConversations.length > 0) {
     systemInstruction += `\n\n[CROSS_MATRIX_NEURAL_RECALL]:
@@ -47,13 +45,11 @@ ${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_
 `;
   }
 
-  // 3. PERSONA FORGE DATA
   if (personaAugmentation) {
     systemInstruction += `\n\n[AUGMENTED_PERSONA_DNA]:
 "${personaAugmentation}"`;
   }
 
-  // 4. ACTIVE CONTEXT
   if (contextNote) {
     systemInstruction += `\n\n[SESSION_CONTEXT_INGESTION]:
 "${contextNote}"`;
@@ -87,11 +83,19 @@ ${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_
   }
 };
 
-export const extractConcepts = async (conversationText: string): Promise<{ label: string, description: string }[]> => {
+export const extractConceptsFromText = async (conversationText: string, existingConceptLabels: string[]): Promise<Partial<Concept>[]> => {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Extract up to 5 key philosophical concepts from this dialogue. JSON format.`,
+      contents: `Analyze the following philosophical dialogue and extract exactly 3 key concepts. 
+      Format as JSON. 
+      Assign a category like 'ETHICS', 'METAPHYSICS', 'LOGIC', 'POLITICAL', or 'EXISTENTIAL'.
+      Rate importance from 1-5.
+      
+      Dialogue:
+      ${conversationText}
+      
+      Existing concepts in the system to avoid duplicates if possible: ${existingConceptLabels.join(", ")}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -100,15 +104,20 @@ export const extractConcepts = async (conversationText: string): Promise<{ label
             type: Type.OBJECT,
             properties: {
               label: { type: Type.STRING },
-              description: { type: Type.STRING }
+              description: { type: Type.STRING },
+              category: { type: Type.STRING },
+              importance: { type: Type.NUMBER }
             },
-            required: ["label", "description"]
+            required: ["label", "description", "category", "importance"]
           }
         }
       }
     });
     return JSON.parse(response.text?.trim() || "[]");
-  } catch (error) { return []; }
+  } catch (error) { 
+    console.error("Extraction error:", error);
+    return []; 
+  }
 };
 
 export const generateThoughtExperiment = async (history: Message[]): Promise<string> => {

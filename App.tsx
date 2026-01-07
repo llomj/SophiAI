@@ -1,16 +1,16 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Persona, Conversation, Message, SophiData, Note } from './types';
+import { Persona, Conversation, Message, SophiData, Note, Concept } from './types';
 import { loadSophiData, saveSophiData, exportToCSV } from './utils/storage';
-import { getPhilosophicalResponse, generateThoughtExperiment } from './services/geminiService';
+import { getPhilosophicalResponse, extractConceptsFromText } from './services/geminiService';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
-import ConceptMap from './components/ConceptGraph'; // Renamed conceptually to Map
+import ConceptMap from './components/ConceptGraph';
 
 const TAB_DESCRIPTIONS: Record<string, string> = {
   chat: "TERMINAL: ACTIVE_DIALOGUE_INTERFACE. ENGAGE IN DIALECTIC REASONING WITH SELECTED PHILOSOPHER.",
   forge: "PERSONA_FORGE: KNOWLEDGE_AUGMENTATION. INJECT CUSTOM LOGIC, TRANSCRIPTS, AND AXIOMS INTO THE AI.",
-  graph: "MATRIX_MAP: NEURAL_TOPOLOGY. NAVIGATE CATEGORIZED PHILOSOPHICAL NODES AND THEIR CROSS-CONNECTIONS.",
+  graph: "MATRIX_MAP: NEURAL_TOPOLOGY. NAVIGATE CATEGORIZED PHILOSOPHICAL NODES EXTRACTED FROM YOUR CONVERSATIONS.",
   notes: "ARCHIVES: DATA_RETENTION_CENTER. BROWSE SAVED NOTES, QUOTES, AND EXTERNAL REFERENCES.",
   userprompt: "USER_PROMPT: IDENTITY_DIRECTIVE. DEFINE YOUR STATIC PROFILE AND BEHAVIORAL RULES FOR ALL AI MATRICES.",
   userlog: "USER_LOG: NEURAL_MEMORY. REVIEW CONSOLIDATED HISTORY ACROSS ALL REASONING MATRICES."
@@ -28,8 +28,10 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'graph' | 'notes' | 'forge' | 'userlog' | 'userprompt'>('chat');
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [controlHover, setControlHover] = useState<string | null>(null);
-  const [saveStatus, setSaveStatus] = useState<'IDLE' | 'SAVING' | 'SAVED'>('IDLE');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  const [copyLabel, setCopyLabel] = useState('COPY');
+  const [syncLabel, setSyncLabel] = useState('SYNC');
 
   useEffect(() => {
     saveSophiData(data);
@@ -93,31 +95,69 @@ const App: React.FC = () => {
       metadata: { contradictionDetected }
     };
 
-    setData(prev => ({
-      ...prev,
-      conversations: prev.conversations.map(c => 
+    setData(prev => {
+      const updatedConvs = prev.conversations.map(c => 
         c.id === currentId 
           ? { ...c, messages: [...c.messages, assistantMessage], updatedAt: Date.now() } 
           : c
-      )
-    }));
+      );
+      return { ...prev, conversations: updatedConvs };
+    });
+
     setIsLoading(false);
+
+    // Dynamic Concept Extraction for the Map
+    setTimeout(async () => {
+      const convText = text + " " + responseText;
+      const extracted = await extractConceptsFromText(convText, data.concepts.map(c => c.label));
+      
+      if (extracted.length > 0) {
+        setData(prev => {
+          const newConcepts = [...prev.concepts];
+          extracted.forEach(raw => {
+            const existingIdx = newConcepts.findIndex(c => c.label.toLowerCase() === raw.label?.toLowerCase());
+            if (existingIdx >= 0) {
+              // Update existing node with new connections if relevant
+              if (!newConcepts[existingIdx].connections.includes(currentId!)) {
+                newConcepts[existingIdx].connections.push(currentId!);
+              }
+            } else {
+              // Add new node
+              newConcepts.push({
+                id: crypto.randomUUID(),
+                label: raw.label!,
+                description: raw.description!,
+                category: raw.category!,
+                importance: raw.importance!,
+                connections: [currentId!] // In our context, connections link concepts to conversation IDs
+              });
+            }
+          });
+          return { ...prev, concepts: newConcepts };
+        });
+      }
+    }, 1000);
   };
 
   const triggerManualSync = () => {
-    setSaveStatus('SAVING');
+    setSyncLabel('SYNCING...');
+    saveSophiData(data);
     setTimeout(() => {
-      setSaveStatus('SAVED');
-      setTimeout(() => setSaveStatus('IDLE'), 2000);
-    }, 600);
+      setSyncLabel('SYNCED!');
+      setTimeout(() => setSyncLabel('SYNC'), 2000);
+    }, 800);
   };
 
   const copyToClipboard = () => {
     const text = (activeTab === 'forge' ? data.personaAugmentations[data.activePersona] : data.userPrompt) || '';
-    navigator.clipboard.writeText(text);
-    const btn = document.getElementById('copy-btn');
-    if (btn) btn.innerText = 'COPIED!';
-    setTimeout(() => { if (btn) btn.innerText = 'COPY_DATA'; }, 2000);
+    if (!text) return;
+    
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyLabel('COPIED!');
+      setTimeout(() => setCopyLabel('COPY'), 2000);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
   };
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
@@ -148,7 +188,6 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative z-10 bg-[#05060b]">
-        {/* Header - Handling top safe area for iPhone notch */}
         <header className="pt-[env(safe-area-inset-top)] border-b border-slate-800 bg-[#0a0b10]/95 backdrop-blur-xl z-40 shrink-0 relative">
           <div className="h-14 lg:h-16 px-4 lg:px-6 flex items-center justify-between">
             <div className="flex items-center space-x-2 lg:space-x-6 h-full overflow-x-auto no-scrollbar scroll-smooth w-full">
@@ -217,11 +256,11 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2 shrink-0">
-                    <button onClick={copyToClipboard} onMouseEnter={() => setControlHover('copy')} onMouseLeave={() => setControlHover(null)} className="px-3 lg:px-4 py-2.5 bg-slate-800 text-slate-400 mono text-[10px] uppercase border border-slate-700 hover:text-white hover:bg-slate-700 transition-all flex-1 lg:flex-none font-bold">
-                      COPY
+                    <button onClick={copyToClipboard} onMouseEnter={() => setControlHover('copy')} onMouseLeave={() => setControlHover(null)} className="px-3 lg:px-4 py-2.5 bg-slate-800 text-slate-400 mono text-[10px] uppercase border border-slate-700 hover:text-white hover:bg-slate-700 transition-all flex-1 lg:flex-none font-bold min-w-[80px]">
+                      {copyLabel}
                     </button>
-                    <button onClick={triggerManualSync} onMouseEnter={() => setControlHover('sync')} onMouseLeave={() => setControlHover(null)} className={`px-4 lg:px-6 py-2.5 mono font-bold text-[10px] uppercase transition-all flex items-center justify-center flex-1 lg:flex-none ${activeTab === 'forge' ? 'bg-amber-500 text-slate-900 hover:bg-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-cyan-500 text-slate-900 hover:bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]'}`}>
-                      SYNC
+                    <button onClick={triggerManualSync} onMouseEnter={() => setControlHover('sync')} onMouseLeave={() => setControlHover(null)} className={`px-4 lg:px-6 py-2.5 mono font-bold text-[10px] uppercase transition-all flex items-center justify-center flex-1 lg:flex-none min-w-[100px] ${activeTab === 'forge' ? 'bg-amber-500 text-slate-900 hover:bg-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-cyan-500 text-slate-900 hover:bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]'}`}>
+                      {syncLabel}
                     </button>
                     <button 
                       onClick={() => setActiveTab('chat')} 
@@ -248,8 +287,6 @@ const App: React.FC = () => {
                       } else {
                         setData(prev => ({ ...prev, userPrompt: e.target.value }));
                       }
-                      setSaveStatus('SAVING');
-                      setTimeout(() => setSaveStatus('SAVED'), 150);
                     }}
                   ></textarea>
                 </div>
@@ -302,7 +339,15 @@ const App: React.FC = () => {
 
           {activeTab === 'graph' && (
              <div className="h-full w-full">
-               <ConceptMap concepts={data.concepts} onConceptClick={() => {}} />
+               <ConceptMap 
+                concepts={data.concepts} 
+                conversations={data.conversations}
+                onConceptClick={() => {}} 
+                onResumeConversation={(id) => {
+                  setData(prev => ({ ...prev, currentConversationId: id }));
+                  setActiveTab('chat');
+                }}
+              />
              </div>
           )}
           

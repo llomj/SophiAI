@@ -1,13 +1,15 @@
 
 import React, { useState, useMemo } from 'react';
-import { Concept } from '../types';
+import { Concept, Conversation } from '../types';
 
 interface ConceptGraphProps {
   concepts: Concept[];
+  conversations: Conversation[];
   onConceptClick: (concept: Concept) => void;
+  onResumeConversation?: (id: string) => void;
 }
 
-const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, onConceptClick }) => {
+const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, conversations, onConceptClick, onResumeConversation }) => {
   const [selectedConceptId, setSelectedConceptId] = useState<string | null>(null);
 
   const selectedConcept = useMemo(() => 
@@ -25,10 +27,11 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, onConceptClick }) =
     return groups;
   }, [concepts]);
 
-  const relatedConcepts = useMemo(() => {
+  const relatedConversations = useMemo(() => {
     if (!selectedConcept) return [];
-    return concepts.filter(c => selectedConcept.connections.includes(c.id));
-  }, [concepts, selectedConcept]);
+    // In our implementation, concept.connections maps to Conversation IDs
+    return conversations.filter(c => selectedConcept.connections.includes(c.id));
+  }, [conversations, selectedConcept]);
 
   if (concepts.length === 0) {
     return (
@@ -39,6 +42,7 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, onConceptClick }) =
           </svg>
         </div>
         <p className="mono uppercase tracking-[0.3em] text-xs">No Matrix Nodes Detected</p>
+        <p className="text-[10px] mono max-w-xs leading-relaxed">Dialogues in the chat terminal will automatically populate this semantic landscape.</p>
       </div>
     );
   }
@@ -102,18 +106,14 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, onConceptClick }) =
               </p>
 
               <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
-                <div className="flex -space-x-2">
-                  {concept.connections.slice(0, 3).map((conn, idx) => (
-                    <div key={idx} className="w-5 h-5 rounded-full border border-slate-900 bg-slate-800 flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
-                    </div>
-                  ))}
-                  {concept.connections.length > 3 && (
-                    <div className="text-[8px] mono text-slate-600 ml-3 flex items-center">+{concept.connections.length - 3}</div>
-                  )}
+                <div className="flex items-center space-x-2">
+                  <span className="text-[8px] mono text-slate-600 uppercase tracking-widest">Linked_In:</span>
+                  <div className="text-[9px] px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-500 rounded mono">
+                    {concept.connections.length} LOGS
+                  </div>
                 </div>
-                <div className="text-[9px] mono text-slate-600 font-bold tracking-widest uppercase">
-                  VIEW_MATRIX
+                <div className="text-[9px] mono text-slate-600 font-bold tracking-widest uppercase group-hover:text-cyan-500 transition-colors">
+                  OPEN_NODE
                 </div>
               </div>
             </div>
@@ -140,34 +140,40 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, onConceptClick }) =
             </div>
 
             <div className="space-y-4">
-              <label className="text-[9px] mono font-bold uppercase tracking-[0.4em] text-slate-600">Cross_Matrix_Connections</label>
+              <label className="text-[9px] mono font-bold uppercase tracking-[0.4em] text-slate-600">Archival_Evidence</label>
               <div className="space-y-2">
-                {relatedConcepts.length > 0 ? (
-                  relatedConcepts.map(c => (
+                {relatedConversations.length > 0 ? (
+                  relatedConversations.map(conv => (
                     <button
-                      key={c.id}
-                      onClick={() => {
-                        setSelectedConceptId(c.id);
-                        onConceptClick(c);
-                      }}
-                      className="w-full text-left p-3 border border-slate-800 bg-slate-900/30 hover:bg-slate-800/50 hover:border-cyan-500/30 transition-all group flex items-center space-x-3"
+                      key={conv.id}
+                      onClick={() => onResumeConversation?.(conv.id)}
+                      className="w-full text-left p-3 border border-slate-800 bg-slate-900/30 hover:bg-slate-800/50 hover:border-cyan-500/30 transition-all group flex items-center justify-between"
                     >
-                      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full group-hover:animate-ping"></div>
-                      <div>
-                        <div className="text-[10px] mono font-bold text-slate-400 group-hover:text-cyan-400 uppercase">{c.label}</div>
-                        <div className="text-[8px] mono text-slate-700 uppercase tracking-widest">{c.category || 'GENERAL'}</div>
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full group-hover:animate-ping"></div>
+                        <div className="truncate">
+                          <div className="text-[10px] mono font-bold text-slate-400 group-hover:text-cyan-400 uppercase truncate">{conv.title}</div>
+                          <div className="text-[8px] mono text-slate-700 uppercase tracking-widest">{conv.persona} Matrix</div>
+                        </div>
                       </div>
+                      <svg className="w-3 h-3 text-slate-700 group-hover:text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7" />
+                      </svg>
                     </button>
                   ))
                 ) : (
-                  <div className="text-[10px] mono text-slate-700 italic">No direct connections established in matrix.</div>
+                  <div className="text-[10px] mono text-slate-700 italic">No source logs found for this concept node.</div>
                 )}
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-800">
-               <button className="w-full py-3 bg-cyan-500 text-slate-900 mono text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-                INJECT_INTO_DIALOGUE
+            <div className="pt-6 border-t border-slate-800 space-y-3">
+              <p className="text-[8px] mono text-slate-600 text-center uppercase tracking-widest">Status: PERSISTENT_MEMORY_COMMIT</p>
+               <button 
+                onClick={() => onResumeConversation?.(selectedConcept.connections[0])}
+                className="w-full py-3 bg-cyan-500 text-slate-900 mono text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+              >
+                JUMP_TO_FIRST_MENTION
               </button>
             </div>
           </div>
