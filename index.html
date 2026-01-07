@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>SophiAI | Cyber-Philosophy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -13,6 +13,8 @@
             font-family: 'Inter', sans-serif;
             background-color: #05060b;
             color: #e2e8f0;
+            margin: 0;
+            padding: 0;
         }
         .serif {
             font-family: 'Crimson Pro', serif;
@@ -34,13 +36,18 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #2dd4bf;
         }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
         .cyber-panel {
             background: rgba(15, 17, 26, 0.8);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(45, 212, 191, 0.1);
         }
-        .cyber-glow-cyan { box-shadow: 0 0 15px rgba(45, 212, 191, 0.2); }
-        .neon-text-cyan { color: #2dd4bf; text-shadow: 0 0 8px rgba(45, 212, 191, 0.5); }
     </style>
 <script type="importmap">
 {
@@ -54,7 +61,7 @@
 }
 </script>
 </head>
-<body class="overflow-hidden">
+<body class="overflow-hidden bg-[#05060b]">
     <div id="root"></div>
 </body>
 </html>

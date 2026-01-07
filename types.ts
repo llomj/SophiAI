@@ -55,6 +55,7 @@ export interface Concept {
   label: string;
   description: string;
   importance: number;
+  category?: string; // Added for map organization
   connections: string[]; 
 }
 
