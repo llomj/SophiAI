@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Persona, Conversation, Message, SophiData, Note } from './types';
 import { loadSophiData, saveSophiData, exportToCSV } from './utils/storage';
@@ -211,6 +210,18 @@ const App: React.FC = () => {
                     <div onMouseEnter={() => setControlHover('status')} onMouseLeave={() => setControlHover(null)} className={`px-4 py-2 mono text-[10px] uppercase border rounded-sm transition-all min-w-[80px] text-center cursor-help ${saveStatus === 'SAVED' ? 'bg-lime-500/10 text-lime-400 border-lime-500/30' : 'bg-slate-900 text-slate-600 border-slate-800'}`}>
                       {saveStatus === 'IDLE' ? 'STANDBY' : saveStatus}
                     </div>
+                    
+                    {/* ENHANCED CLOSE BUTTON */}
+                    <button 
+                      onClick={() => setActiveTab('chat')} 
+                      className="ml-4 px-3 py-2 bg-slate-800 hover:bg-red-500 text-slate-100 border border-slate-600 rounded-sm transition-all flex items-center space-x-2 group shadow-lg"
+                      title="EXIT_MODULE"
+                    >
+                      <span className="text-[10px] font-bold mono group-hover:block hidden">CLOSE</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
 
@@ -243,8 +254,20 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'userlog' && (
-            <div className="h-full overflow-y-auto custom-scrollbar p-4 space-y-4 max-w-6xl mx-auto animate-in fade-in duration-500">
-              <h2 className="text-cyan-400 font-bold mono uppercase tracking-[0.3em] mb-8 border-b border-slate-800 pb-4">Consolidated_Neural_Log</h2>
+            <div className="h-full overflow-y-auto custom-scrollbar p-4 space-y-4 max-w-6xl mx-auto animate-in fade-in duration-500 relative">
+               <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-8">
+                <h2 className="text-cyan-400 font-bold mono uppercase tracking-[0.3em]">Consolidated_Neural_Log</h2>
+                <button 
+                  onClick={() => setActiveTab('chat')} 
+                  className="p-2 bg-slate-800 hover:bg-red-500 text-slate-100 border border-slate-700 rounded-sm transition-all flex items-center space-x-2 px-4 shadow-lg"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span className="text-[10px] mono">CLOSE_ARCHIVE</span>
+                </button>
+              </div>
+
               {data.conversations.length === 0 ? (
                 <div className="text-center py-20 opacity-20 mono uppercase tracking-widest">No history recorded in matrix.</div>
               ) : (

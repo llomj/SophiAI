@@ -32,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const personasByCategory = useMemo(() => {
     const categories: Record<string, Persona[]> = {};
+    // Fix: cast Object.keys result to Persona[] to ensure the type of p is correct
     (Object.keys(PERSONA_CONFIGS) as Persona[]).forEach(p => {
       const cat = PERSONA_CONFIGS[p].category;
       if (!categories[cat]) categories[cat] = [];
@@ -59,7 +60,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="px-4 py-4 border-b border-slate-800 flex flex-col h-[400px] overflow-hidden">
         <label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest block mb-3 px-2 mono shrink-0">Reasoning_Matrix_v3.0</label>
         <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-          {Object.entries(personasByCategory).map(([category, personas]) => (
+          {/* Fix: cast Object.entries to any or a concrete type to avoid "Property 'map' does not exist on type 'unknown'" */}
+          {(Object.entries(personasByCategory) as [string, Persona[]][]).map(([category, personas]) => (
             <div key={category} className="space-y-1">
               <div className="px-2 mb-1"><span className="text-[8px] mono text-slate-700 uppercase tracking-[0.3em] font-bold">{category}</span></div>
               {personas.map(p => {

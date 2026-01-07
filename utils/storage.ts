@@ -1,16 +1,9 @@
-
 import { SophiData, Persona } from '../types';
+import { TJUMP_DATA } from '../persona_forge/tjump';
+import { USER_IDENTITY_DATA } from '../user_identity_forge/identity';
+import { USER_LOG_DATA } from '../user_log_forge/logs';
 
 const STORAGE_KEY = 'sophi_ai_data_v1';
-
-const TJUMP_INITIAL_DATA = `TJump 50 sources: Justified True Belief (JTB) & Epistemology.
-Knowledge is defined as Justified True Belief (JTB). Absolute certainty is not required; fallibilism is the consensus. 
-The only absolute truth is the Cogito: 'I think, therefore I am'.
-Justification requires Novel Testable Predictions (NTPs). If a claim cannot produce a prediction about the future that is confirmed, it is imaginary claptrap.
-Post-hoc explanations (explaining data that already exists) are not evidence.
-Consciousness is an emergent property of material states (Composition Fallacy refuted).
-Morality is a Descriptive Law of Physics (No inherent 'oughts'). The Best of All Possible Worlds (BAPW) is the absence of involuntary imposition of will.
-Authority and commands are irrelevant to morality.`;
 
 export const saveSophiData = (data: SophiData) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -22,9 +15,12 @@ export const loadSophiData = (): SophiData => {
     const parsed = JSON.parse(saved);
     return {
       ...parsed,
-      personaAugmentations: parsed.personaAugmentations || { [Persona.TJUMP]: TJUMP_INITIAL_DATA },
-      userPersonality: parsed.userPersonality || '',
-      userPrompt: parsed.userPrompt || ''
+      personaAugmentations: {
+        ...parsed.personaAugmentations,
+        [Persona.TJUMP]: parsed.personaAugmentations?.[Persona.TJUMP] || TJUMP_DATA 
+      },
+      userPersonality: parsed.userPersonality || USER_LOG_DATA,
+      userPrompt: parsed.userPrompt || USER_IDENTITY_DATA
     };
   }
   return {
@@ -34,9 +30,11 @@ export const loadSophiData = (): SophiData => {
     currentConversationId: null,
     activePersona: Persona.STOCIC,
     activeContextNoteId: null,
-    personaAugmentations: { [Persona.TJUMP]: TJUMP_INITIAL_DATA },
-    userPersonality: '',
-    userPrompt: ''
+    personaAugmentations: { 
+      [Persona.TJUMP]: TJUMP_DATA 
+    },
+    userPersonality: USER_LOG_DATA,
+    userPrompt: USER_IDENTITY_DATA
   };
 };
 
