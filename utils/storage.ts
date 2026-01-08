@@ -1,6 +1,7 @@
 
 import { SophiData, Persona } from '../types';
 import { TJUMP_DATA } from '../persona_forge/tjump';
+import { TJUMP_MIND_DATA } from '../persona_forge/TJump_mind';
 import { USER_IDENTITY_DATA } from '../user_identity_forge/identity';
 import { USER_LOG_DATA } from '../user_log_forge/logs';
 
@@ -12,16 +13,22 @@ export const saveSophiData = (data: SophiData) => {
 
 export const loadSophiData = (): SophiData => {
   const saved = localStorage.getItem(STORAGE_KEY);
+  
+  // Combine TJump base data with the expanded mind map
+  const fullTJumpDNA = `${TJUMP_DATA}\n\n[NEURAL_MIND_EXTENSION]:\n${TJUMP_MIND_DATA}`;
+
   if (saved) {
     const parsed = JSON.parse(saved);
     return {
       ...parsed,
       personaAugmentations: {
         ...parsed.personaAugmentations,
-        [Persona.TJUMP]: parsed.personaAugmentations?.[Persona.TJUMP] || TJUMP_DATA 
+        // Always enforce Forge files as source of truth for base personas
+        [Persona.TJUMP]: fullTJumpDNA 
       },
       userPersonality: parsed.userPersonality || USER_LOG_DATA,
-      userPrompt: parsed.userPrompt || USER_IDENTITY_DATA
+      userPrompt: parsed.userPrompt || USER_IDENTITY_DATA,
+      customPersonas: parsed.customPersonas || []
     };
   }
   return {
@@ -32,10 +39,11 @@ export const loadSophiData = (): SophiData => {
     activePersona: Persona.STOIC,
     activeContextNoteId: null,
     personaAugmentations: { 
-      [Persona.TJUMP]: TJUMP_DATA 
+      [Persona.TJUMP]: fullTJumpDNA 
     },
     userPersonality: USER_LOG_DATA,
-    userPrompt: USER_IDENTITY_DATA
+    userPrompt: USER_IDENTITY_DATA,
+    customPersonas: []
   };
 };
 

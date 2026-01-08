@@ -1,20 +1,67 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Message, Persona, Note } from '../types';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Message, Persona, Note, CustomPersona } from '../types';
 import { PERSONA_CONFIGS } from '../constants';
+import { GoogleGenAI, Modality } from "@google/genai";
 
 interface ChatWindowProps {
   messages: Message[];
-  activePersona: Persona;
+  activePersona: string;
   onSendMessage: (text: string) => void;
   isLoading: boolean;
   onToggleSidebar?: () => void;
   activeNote?: Note;
+  customPersonas?: CustomPersona[];
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, activePersona, onSendMessage, isLoading, onToggleSidebar, activeNote }) => {
+// Audio utility functions as per SDK requirements
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+
+const ChatWindow: React.FC<ChatWindowProps> = ({ 
+  messages, 
+  activePersona, 
+  onSendMessage, 
+  isLoading, 
+  onToggleSidebar, 
+  activeNote,
+  customPersonas = []
+}) => {
   const [input, setInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+  const [isTtsLoading, setIsTtsLoading] = useState<string | null>(null);
+  
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -22,100 +69,167 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, activePersona, onSend
     }
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results).map((result: any) => result[0].transcript).join('');
+        setInput(transcript);
+      };
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
+      recognitionRef.current = recognition;
+    }
+    return () => {
+      if (audioSourceRef.current) audioSourceRef.current.stop();
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) return;
+    if (isListening) recognitionRef.current.stop();
+    else recognitionRef.current.start();
+  };
+
+  const handleSpeak = async (msg: Message) => {
+    if (speakingMsgId === msg.id) {
+      if (audioSourceRef.current) {
+        audioSourceRef.current.stop();
+        audioSourceRef.current = null;
+      }
+      setSpeakingMsgId(null);
+      return;
+    }
+
+    if (audioSourceRef.current) {
+      audioSourceRef.current.stop();
+      audioSourceRef.current = null;
+    }
+
+    setIsTtsLoading(msg.id);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: [{ parts: [{ text: msg.content }] }],
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Zephyr' },
+            },
+          },
+        },
+      });
+
+      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (base64Audio) {
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        }
+        
+        const ctx = audioContextRef.current;
+        const audioBuffer = await decodeAudioData(decode(base64Audio), ctx, 24000, 1);
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(ctx.destination);
+        
+        source.onended = () => {
+          if (speakingMsgId === msg.id) setSpeakingMsgId(null);
+        };
+        
+        audioSourceRef.current = source;
+        setSpeakingMsgId(msg.id);
+        setIsTtsLoading(null);
+        source.start();
+      }
+    } catch (err) {
+      console.error("TTS Error:", err);
+      setIsTtsLoading(null);
+      setSpeakingMsgId(null);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
     onSendMessage(input);
     setInput('');
+    if (isListening) recognitionRef.current?.stop();
   };
 
-  const persona = PERSONA_CONFIGS[activePersona];
+  // Improved Persona Resolution: Check custom personas first, then built-in, then fallback.
+  const resolvedPersona = useMemo(() => {
+    const custom = customPersonas.find(p => p.name === activePersona);
+    if (custom) {
+      return {
+        description: custom.description,
+        color: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+        glow: "shadow-[0_0_15px_rgba(245,158,11,0.3)]",
+        focus: []
+      };
+    }
+    return PERSONA_CONFIGS[activePersona] || PERSONA_CONFIGS[Persona.STOIC];
+  }, [activePersona, customPersonas]);
 
   return (
     <div className="flex flex-col h-full bg-[#0d0f17] rounded-none lg:rounded-sm border-0 lg:border lg:border-slate-800 shadow-2xl relative overflow-hidden">
-      {/* Decorative background grid */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#2dd4bf 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }}></div>
 
       {/* Header */}
       <div className="px-4 lg:px-6 py-4 border-b border-slate-800 flex flex-col space-y-3 bg-black/40 backdrop-blur-md z-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
-            <button 
-              onClick={onToggleSidebar}
-              className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-cyan-400 transition-colors shrink-0"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+            <button onClick={onToggleSidebar} className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-cyan-400 transition-colors shrink-0">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
-            
             <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <div className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${persona.color.split(' ')[1]}`}></div>
+              <div className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${resolvedPersona.color.split(' ')[1]}`}></div>
               <div className="min-w-0 flex-1">
-                <h2 className="font-bold text-slate-100 text-[11px] lg:text-sm mono tracking-tight leading-tight whitespace-normal break-words">
-                  {persona.description}
-                </h2>
-                <p className="text-[9px] text-slate-500 mono uppercase tracking-widest truncate">
-                  Matrix: <span className={persona.color.split(' ')[1]}>{activePersona}</span>
-                </p>
+                <h2 className="font-bold text-slate-100 text-[11px] lg:text-sm mono tracking-tight whitespace-normal break-words uppercase">{resolvedPersona.description}</h2>
+                <p className="text-[9px] text-slate-500 mono uppercase tracking-widest truncate">Matrix: <span className={resolvedPersona.color.split(' ')[1]}>{activePersona}</span></p>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Active Context Note Badge */}
-        {activeNote && (
-          <div className="flex items-center space-x-2 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 rounded-sm animate-in fade-in slide-in-from-top-1 duration-300">
-            <svg className="w-3 h-3 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span className="text-[9px] mono text-cyan-400 font-bold uppercase tracking-widest truncate flex-1">
-              Injected_Context: {activeNote.title}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 z-10 custom-scrollbar">
-        {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-20">
-            <div className="w-16 h-16 border border-slate-700 rounded-sm flex items-center justify-center">
-              <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 3c1.708 0 3.31.425 4.714 1.178m2.191 1.49L18.6 6.51m-10.33 1.15l-1.49-2.191M11 15.5l.001-.001m0 0L11 15.5l.001-.001z" />
-              </svg>
-            </div>
-            <p className="serif text-lg lg:text-xl italic text-slate-400 max-w-xs px-4">
-              "The unexamined life is not worth living."
-            </p>
-          </div>
-        )}
-
         {messages.map((msg) => {
-          const isContradiction = msg.metadata?.contradictionDetected;
-          
+          const isAIVoiceLoading = isTtsLoading === msg.id;
+          const isAIVoiceSpeaking = speakingMsgId === msg.id;
+
           return (
             <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[92%] lg:max-w-[85%] px-4 py-3 lg:px-5 lg:py-3 border relative transition-all duration-500 ${
                 msg.role === 'user' 
-                  ? 'bg-slate-900/80 text-cyan-50 border-cyan-500/20 rounded-sm rounded-tr-none shadow-[0_0_10px_rgba(6,182,212,0.05)]' 
-                  : `bg-black/60 text-slate-300 border-slate-800 rounded-sm rounded-tl-none ${isContradiction ? 'border-red-500/50 bg-red-500/5 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : ''}`
+                  ? 'bg-slate-900/80 text-cyan-50 border-cyan-500/20 rounded-sm rounded-tr-none' 
+                  : `bg-black/60 text-slate-300 border-slate-800 rounded-sm rounded-tl-none ${isAIVoiceSpeaking ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : ''}`
               }`}>
-                {isContradiction && (
-                  <div className="absolute -top-2 -left-2 bg-red-500 text-white text-[8px] mono px-2 py-0.5 rounded-full animate-bounce shadow-lg flex items-center space-x-1 z-20">
-                    <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" /></svg>
-                    <span>LOGIC_ERR</span>
-                  </div>
+                {msg.role === 'assistant' && (
+                  <button 
+                    onClick={() => handleSpeak(msg)}
+                    className={`absolute -right-8 top-0 p-1.5 transition-all ${isAIVoiceSpeaking ? 'text-cyan-400' : 'text-slate-600 hover:text-slate-400'}`}
+                  >
+                    {isAIVoiceLoading ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    ) : isAIVoiceSpeaking ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" /></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                    )}
+                  </button>
                 )}
-                
-                <div className="text-[14px] lg:text-sm leading-relaxed whitespace-pre-wrap font-light break-words">
-                  {msg.content.split(/(\[LOGICAL_INCONSISTENCY\])/g).map((part, i) => (
-                    part === '[LOGICAL_INCONSISTENCY]' 
-                      ? <span key={i} className="text-red-400 font-bold mono bg-red-500/10 px-1 rounded-sm">{part}</span>
-                      : <span key={i}>{part}</span>
-                  ))}
-                </div>
 
+                <div className="text-[14px] lg:text-sm leading-relaxed whitespace-pre-wrap font-light break-words">
+                  {msg.content}
+                </div>
                 <div className={`text-[8px] mt-2 opacity-30 mono tracking-tighter ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                   {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
@@ -135,24 +249,32 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, activePersona, onSend
       </div>
 
       <form onSubmit={handleSubmit} className="px-4 pt-4 border-t border-slate-800 bg-black/40 z-10 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:pb-4">
-        <div className="relative">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isLoading}
-            placeholder={`SEND_INPUT...`}
-            className="w-full pl-4 pr-12 py-4 lg:py-3 bg-[#0a0b10] border border-slate-800 rounded-sm focus:outline-none focus:border-cyan-500/50 transition-all text-sm mono text-slate-200"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="absolute right-2 top-2 bottom-2 px-3 bg-cyan-500 text-slate-900 hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] rounded-sm"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-          </button>
+        <div className="relative flex items-center space-x-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isLoading}
+              placeholder={isListening ? "LISTENING..." : "SEND_INPUT..."}
+              className={`w-full pl-4 pr-12 py-4 lg:py-3 bg-[#0a0b10] border rounded-sm focus:outline-none transition-all text-sm mono text-slate-200 ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-slate-800 focus:border-cyan-500/50'}`}
+            />
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`absolute right-12 top-2 bottom-2 px-2 transition-all flex items-center justify-center rounded-full ${isListening ? 'text-cyan-400 bg-cyan-500/10 scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-500 hover:text-slate-300'}`}
+              title="Dictation"
+            >
+              <svg className={`w-5 h-5 ${isListening ? 'animate-pulse' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+            </button>
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="absolute right-2 top-2 bottom-2 px-3 bg-cyan-500 text-slate-900 hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] rounded-sm"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+            </button>
+          </div>
         </div>
       </form>
     </div>

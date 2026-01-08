@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Persona, Conversation, Message, SophiData, Note, Concept } from './types';
+import { Persona, Conversation, Message, SophiData, Note, Concept, CustomPersona } from './types';
 import { loadSophiData, saveSophiData, exportToCSV } from './utils/storage';
 import { getPhilosophicalResponse, extractConceptsFromText } from './services/geminiService';
 import Sidebar from './components/Sidebar';
@@ -13,25 +13,22 @@ const TAB_DESCRIPTIONS: Record<string, string> = {
   graph: "MATRIX_MAP: NEURAL_TOPOLOGY. NAVIGATE CATEGORIZED PHILOSOPHICAL NODES EXTRACTED FROM YOUR CONVERSATIONS.",
   notes: "CONTEXT_MATRIX: KNOWLEDGE_VAULT. MANAGE DATA FRAGMENTS TO BE INJECTED INTO AI REASONING PATHS.",
   userprompt: "USER_PROMPT: IDENTITY_DIRECTIVE. DEFINE YOUR STATIC PROFILE AND BEHAVIORAL RULES FOR ALL AI MATRICES.",
-  userlog: "USER_LOG: NEURAL_MEMORY. REVIEW CONSOLIDATED HISTORY ACROSS ALL REASONING MATRICES."
-};
-
-const TOOLTIPS: Record<string, string> = {
-  sync: "SYNC_LOGIC: NEURAL_COMMIT. ETCHES THE CURRENT BUFFER INTO THE BRAIN OF THE ACTIVE SECTOR PERMANENTLY.",
-  status: "STANDBY: MONITORING PHYSICAL SECTORS. 'SAVED' CONFIRMS DATA IS ENCRYPTED AND STORED IN LOCAL_DISK.",
-  copy: "BUFFER_CLONE: DUPLICATES THE ENTIRE NEURAL MATRIX TO CLIPBOARD WITHOUT ALTERING LOCAL DATA."
+  userlog: "USER_LOG: NEURAL_MEMORY. REVIEW CONSOLIDATED HISTORY ACROSS ALL REASONING MATRICES.",
+  customise: "CUSTOMISE: ARCHITECT_NEW_REASONING_MATRICES. DEFINE DNA, NAME, AND BEHAVIOR FOR INDIVIDUAL MODELS."
 };
 
 const App: React.FC = () => {
   const [data, setData] = useState<SophiData>(() => loadSophiData());
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'graph' | 'notes' | 'forge' | 'userlog' | 'userprompt'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'graph' | 'notes' | 'forge' | 'userlog' | 'userprompt' | 'customise'>('chat');
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
-  const [controlHover, setControlHover] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const [copyLabel, setCopyLabel] = useState('COPY');
   const [syncLabel, setSyncLabel] = useState('SYNC');
+
+  // Custom Persona Form State
+  const [newPersona, setNewPersona] = useState({ name: '', description: '', instruction: '' });
 
   useEffect(() => {
     saveSophiData(data);
@@ -84,7 +81,8 @@ const App: React.FC = () => {
       data.notes.find(n => n.id === data.activeContextNoteId)?.content,
       data.personaAugmentations[data.activePersona],
       data.userPrompt,
-      data.conversations
+      data.conversations,
+      data.customPersonas
     );
 
     const assistantMessage: Message = {
@@ -135,6 +133,39 @@ const App: React.FC = () => {
         });
       }
     }, 1000);
+  };
+
+  const addCustomPersona = () => {
+    if (!newPersona.name || !newPersona.instruction) {
+      alert("IDENTITY LABEL AND DIRECTIVE ARE REQUIRED FOR ARCHIVAL.");
+      return;
+    }
+    const persona: CustomPersona = {
+      id: crypto.randomUUID(),
+      ...newPersona,
+      color: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+      createdAt: Date.now()
+    };
+    setData(prev => ({ 
+      ...prev, 
+      customPersonas: [persona, ...prev.customPersonas],
+      activePersona: persona.name 
+    }));
+    setNewPersona({ name: '', description: '', instruction: '' });
+    setActiveTab('chat');
+  };
+
+  const deleteCustomPersona = (id: string) => {
+    setData(prev => {
+      const pToDelete = prev.customPersonas.find(cp => cp.id === id);
+      const isCurrentlyActive = pToDelete && prev.activePersona === pToDelete.name;
+      
+      return { 
+        ...prev, 
+        customPersonas: prev.customPersonas.filter(p => p.id !== id),
+        activePersona: isCurrentlyActive ? Persona.STOIC : prev.activePersona 
+      };
+    });
   };
 
   const createNote = () => {
@@ -212,13 +243,16 @@ const App: React.FC = () => {
         onOpenUserPrompt={() => setActiveTab('userprompt')}
         isOpen={isSidebarOpen}
         onToggle={toggleSidebar}
+        customPersonas={data.customPersonas}
+        onAddCustomPersona={() => setActiveTab('customise')}
+        onDeleteCustomPersona={deleteCustomPersona}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative z-10 bg-[#05060b]">
         <header className="pt-[env(safe-area-inset-top)] border-b border-slate-800 bg-[#0a0b10]/95 backdrop-blur-xl z-40 shrink-0 relative">
           <div className="h-14 lg:h-16 px-4 lg:px-6 flex items-center justify-between">
             <div className="flex items-center space-x-2 lg:space-x-6 h-full overflow-x-auto no-scrollbar scroll-smooth w-full">
-              {['chat', 'forge', 'graph', 'notes'].map(t => (
+              {['chat', 'forge', 'graph', 'notes', 'customise'].map(t => (
                 <button 
                   key={t}
                   onClick={() => setActiveTab(t as any)}
@@ -247,16 +281,97 @@ const App: React.FC = () => {
               isLoading={isLoading}
               onToggleSidebar={toggleSidebar}
               activeNote={data.notes.find(n => n.id === data.activeContextNoteId)}
+              customPersonas={data.customPersonas}
             />
+          )}
+
+          {activeTab === 'customise' && (
+            <div className="h-full overflow-y-auto custom-scrollbar p-3 lg:p-6 animate-in fade-in">
+              <div className="max-w-6xl mx-auto space-y-6">
+                <div className="bg-[#0a0b10] border border-amber-500/30 p-6 lg:p-10 rounded-sm space-y-8 shadow-2xl">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 border border-amber-500/40 bg-amber-500/10 text-amber-500 flex items-center justify-center rounded-sm shrink-0">
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-amber-400 font-bold mono uppercase tracking-[0.3em] text-lg lg:text-xl">Matrix_Architect</h2>
+                      <p className="text-[10px] text-slate-500 mono uppercase tracking-widest">Protocol: DNA_SEQUENCING_V1</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[11px] mono text-slate-500 uppercase font-bold tracking-widest">Identity_Label (Unique ID)</label>
+                      <input 
+                        className="w-full bg-[#05060b] border border-slate-800 p-4 text-sm text-slate-100 mono focus:outline-none focus:border-amber-500 transition-all placeholder:text-slate-800" 
+                        placeholder="E.G. NEURAL_SYNAPSE_01"
+                        value={newPersona.name}
+                        onChange={(e) => setNewPersona(prev => ({...prev, name: e.target.value}))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] mono text-slate-500 uppercase font-bold tracking-widest">Role_Description (Short Bio)</label>
+                      <input 
+                        className="w-full bg-[#05060b] border border-slate-800 p-4 text-sm text-slate-100 mono focus:outline-none focus:border-amber-500 transition-all placeholder:text-slate-800" 
+                        placeholder="E.G. EXPERIMENTAL REASONING ENGINE"
+                        value={newPersona.description}
+                        onChange={(e) => setNewPersona(prev => ({...prev, description: e.target.value}))}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] mono text-slate-500 uppercase font-bold tracking-widest">Behavioral_Directives (System Prompt)</label>
+                    <textarea 
+                      className="w-full bg-[#05060b] border border-slate-800 p-4 text-sm text-slate-100 mono focus:outline-none focus:border-amber-500 min-h-[180px] leading-relaxed transition-all placeholder:text-slate-800" 
+                      placeholder="DEFINE THE UNIQUE LOGICAL CONSTRAINTS, AXIOMS, AND VOICE OF THIS MATRIX..."
+                      value={newPersona.instruction}
+                      onChange={(e) => setNewPersona(prev => ({...prev, instruction: e.target.value}))}
+                    />
+                  </div>
+                  <button 
+                    onClick={addCustomPersona}
+                    className="w-full py-6 bg-amber-500 text-slate-950 font-bold mono text-lg uppercase tracking-[0.4em] hover:bg-amber-400 transition-all shadow-[0_0_30px_rgba(245,158,11,0.2)] active:scale-[0.99] border-none"
+                  >
+                    COMMIT_TO_ACTIVE_ARRAY
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <h2 className="text-slate-500 font-bold mono uppercase tracking-[0.3em] text-[10px]">Persistent_Custom_Matrices</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {data.customPersonas.map(p => (
+                      <div key={p.id} className="p-6 border border-slate-800 bg-[#0a0b10] rounded-sm group relative hover:border-amber-500/40 transition-all flex flex-col justify-between shadow-lg">
+                        <div>
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="text-amber-400 font-bold mono uppercase text-base tracking-tighter truncate pr-2">{p.name}</h3>
+                            <span className="text-[8px] mono text-slate-700 font-bold uppercase tracking-widest">SEQ_ID_{p.id.slice(0,4)}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 mono mb-6 leading-relaxed line-clamp-3 italic opacity-70">"{p.description}"</p>
+                        </div>
+                        <div className="flex items-center space-x-2 pt-4 border-t border-slate-800/50">
+                          <button 
+                            onClick={() => { setData(prev => ({...prev, activePersona: p.name})); setActiveTab('chat'); }} 
+                            className="flex-1 text-[10px] text-slate-400 hover:text-amber-400 mono font-bold uppercase border border-slate-800 py-2 hover:border-amber-500 transition-all bg-black/20"
+                          >
+                            RE-INITIALIZE
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {data.customPersonas.length === 0 && (
+                      <div className="col-span-full py-20 text-center border border-dashed border-slate-800/50 bg-black/10 rounded-sm">
+                        <div className="mono uppercase text-[10px] tracking-[0.5em] text-slate-700">No_Custom_Matrices_Detected</div>
+                        <p className="text-[9px] mono text-slate-800 mt-2">Initialize DNA using the architect panel above.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {(activeTab === 'forge' || activeTab === 'userprompt') && (
             <div className="h-full flex flex-col p-3 lg:p-6 animate-in fade-in duration-500 relative">
-              {controlHover && (
-                <div className={`absolute top-0 left-1/2 -translate-x-1/2 mono text-[8px] font-bold py-2 px-5 z-[60] rounded-b-sm border-x border-b shadow-2xl animate-in slide-in-from-top-4 max-w-[85vw] text-center leading-tight ${activeTab === 'forge' ? 'bg-amber-500 text-slate-900 border-amber-400' : 'bg-cyan-500 text-slate-900 border-cyan-400'}`}>
-                  {TOOLTIPS[controlHover]}
-                </div>
-              )}
               <div className={`flex-1 flex flex-col w-full max-w-6xl mx-auto bg-[#0a0b10] border rounded-sm overflow-hidden transition-all ${activeTab === 'forge' ? 'border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.1)]' : 'border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.1)]'}`}>
                 <div className="bg-black/40 border-b border-slate-800 p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                   <div className="flex items-center space-x-4 min-w-0">

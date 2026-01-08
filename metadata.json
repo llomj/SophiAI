@@ -1,5 +1,7 @@
 {
   "name": "SophiAI ",
   "description": "An interactive philosophical dialogue partner with reasoning personas, concept mapping, and local journaling.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

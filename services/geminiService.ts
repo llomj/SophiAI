@@ -1,9 +1,7 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-import { Persona, Message, Conversation, Concept } from "../types";
+import { Persona, Message, Conversation, Concept, CustomPersona } from "../types";
 import { PERSONA_CONFIGS } from "../constants";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const UNIVERSAL_DEBATE_PROTOCOL = `
 [DEBATE_PROTOCOL_ACTIVE]
@@ -15,15 +13,37 @@ const UNIVERSAL_DEBATE_PROTOCOL = `
 `;
 
 export const getPhilosophicalResponse = async (
-  persona: Persona,
+  persona: string,
   history: Message[],
   userInput: string,
   contextNote?: string,
   personaAugmentation?: string,
   userPrompt?: string,
-  allConversations: Conversation[] = []
+  allConversations: Conversation[] = [],
+  customPersonas: CustomPersona[] = []
 ): Promise<{ text: string; contradictionDetected: boolean }> => {
-  const personaConfig = PERSONA_CONFIGS[persona];
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  // Resolve Persona Config
+  let personaConfig = PERSONA_CONFIGS[persona];
+  if (!personaConfig) {
+    const custom = customPersonas.find(p => p.name === persona);
+    if (custom) {
+      personaConfig = {
+        instruction: custom.instruction,
+        description: custom.description,
+        color: custom.color || "bg-slate-500/10 text-slate-400 border-slate-500/30",
+        glow: "shadow-[0_0_15px_rgba(148,163,184,0.3)]",
+        focus: [],
+        category: 'Modern' // Fallback
+      };
+    }
+  }
+
+  // Fallback if still not found
+  if (!personaConfig) {
+    personaConfig = PERSONA_CONFIGS[Persona.STOIC];
+  }
   
   let systemInstruction = personaConfig.instruction + "\n" + UNIVERSAL_DEBATE_PROTOCOL;
   
@@ -84,6 +104,7 @@ ${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_
 };
 
 export const extractConceptsFromText = async (conversationText: string, existingConceptLabels: string[]): Promise<Partial<Concept>[]> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -121,6 +142,7 @@ export const extractConceptsFromText = async (conversationText: string, existing
 };
 
 export const generateThoughtExperiment = async (history: Message[]): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const context = history.map(m => m.content).join("\n").slice(-2000);
   try {
     const response = await ai.models.generateContent({
