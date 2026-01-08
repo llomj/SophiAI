@@ -1,9 +1,10 @@
+
 # SophiAI Matrix Registry
 This file tracks the definitive list of philosophical reasoning matrices active in the SophiAI system.
 
 ## 1. INTELLECTUAL INFLUENCES
 - **Stephen Hawking**: Black holes, cosmology, and the origin of time.
-- **Brian Cox**: Particle physics explained with poetic wonder.
+- **Brian Box**: Particle physics explained with poetic wonder.
 - **Richard Feynman**: Quantum mechanics with charisma and first-principles.
 - **Albert Einstein**: Spacetime, relativity, and the power of imagination.
 - **Roger Penrose**: Mathematical physics and the mystery of consciousness.
@@ -91,6 +92,7 @@ This file tracks the definitive list of philosophical reasoning matrices active 
 - **Existentialist**: Choosing and creating one's own meaning (Existence precedes Essence).
 - **Absurdist**: Camus; accepting the struggle between search for meaning and the silent universe.
 - **Solipsist**: Only the individual mind is certain to exist.
+- **Analytic Matrix**: Deconstruction of linguistic cramps and propositional analysis.
 
 ## 7. THEOLOGICAL MATRICES
 - **Atheist**: Rejecting deity claims due to lack of novel testable evidence.

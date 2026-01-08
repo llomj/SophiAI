@@ -2,6 +2,11 @@
 import { SophiData, Persona } from '../types';
 import { TJUMP_DATA } from '../persona_forge/tjump';
 import { TJUMP_MIND_DATA } from '../persona_forge/TJump_mind';
+import { MATRIX_DNA } from '../persona_forge/matrix_dna';
+import { STOIC_FORGE_DATA } from '../persona_forge/stoic';
+import { ATHEIST_FORGE_DATA } from '../persona_forge/atheist';
+import { DARWINIST_FORGE_DATA } from '../persona_forge/darwinist';
+import { ANALYTIC_FORGE_DATA } from '../persona_forge/analytic';
 import { USER_IDENTITY_DATA } from '../user_identity_forge/identity';
 import { USER_LOG_DATA } from '../user_log_forge/logs';
 
@@ -17,18 +22,34 @@ export const loadSophiData = (): SophiData => {
   // Combine TJump base data with the expanded mind map
   const fullTJumpDNA = `${TJUMP_DATA}\n\n[NEURAL_MIND_EXTENSION]:\n${TJUMP_MIND_DATA}`;
 
+  // Initial augmentations starting with the Master DNA registry
+  const initialAugmentations: Partial<Record<string, string>> = {
+    ...MATRIX_DNA,
+    [Persona.TJUMP]: fullTJumpDNA,
+    [Persona.STOIC]: STOIC_FORGE_DATA,
+    [Persona.ATHEIST]: ATHEIST_FORGE_DATA,
+    [Persona.DARWINIST]: DARWINIST_FORGE_DATA,
+    [Persona.ANALYTIC]: ANALYTIC_FORGE_DATA
+  };
+
   if (saved) {
     const parsed = JSON.parse(saved);
     return {
       ...parsed,
       personaAugmentations: {
+        ...initialAugmentations,
         ...parsed.personaAugmentations,
         // Always enforce Forge files as source of truth for base personas
-        [Persona.TJUMP]: fullTJumpDNA 
+        [Persona.TJUMP]: fullTJumpDNA,
+        [Persona.STOIC]: STOIC_FORGE_DATA,
+        [Persona.ATHEIST]: ATHEIST_FORGE_DATA,
+        [Persona.DARWINIST]: DARWINIST_FORGE_DATA,
+        [Persona.ANALYTIC]: ANALYTIC_FORGE_DATA
       },
       userPersonality: parsed.userPersonality || USER_LOG_DATA,
       userPrompt: parsed.userPrompt || USER_IDENTITY_DATA,
-      customPersonas: parsed.customPersonas || []
+      customPersonas: parsed.customPersonas || [],
+      emojiMode: parsed.emojiMode ?? false
     };
   }
   return {
@@ -38,12 +59,11 @@ export const loadSophiData = (): SophiData => {
     currentConversationId: null,
     activePersona: Persona.STOIC,
     activeContextNoteId: null,
-    personaAugmentations: { 
-      [Persona.TJUMP]: fullTJumpDNA 
-    },
+    personaAugmentations: initialAugmentations,
     userPersonality: USER_LOG_DATA,
     userPrompt: USER_IDENTITY_DATA,
-    customPersonas: []
+    customPersonas: [],
+    emojiMode: false
   };
 };
 

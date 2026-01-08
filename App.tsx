@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'graph' | 'notes' | 'forge' | 'userlog' | 'userprompt' | 'customise'>('chat');
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   
   const [copyLabel, setCopyLabel] = useState('COPY');
   const [syncLabel, setSyncLabel] = useState('SYNC');
@@ -33,6 +34,12 @@ const App: React.FC = () => {
   useEffect(() => {
     saveSophiData(data);
   }, [data]);
+
+  // Initial sequence to settle into the chat terminal
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitializing(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const activeConversation = useMemo(() => {
     return data.conversations.find(c => c.id === data.currentConversationId) || null;
@@ -74,7 +81,7 @@ const App: React.FC = () => {
     }));
 
     setIsLoading(true);
-    const { text: responseText, contradictionDetected } = await getPhilosophicalResponse(
+    const { text: responseText, contradictionDetected, fallacies } = await getPhilosophicalResponse(
       data.activePersona, 
       updatedConversations.find(c => c.id === currentId)?.messages || [], 
       text, 
@@ -82,7 +89,8 @@ const App: React.FC = () => {
       data.personaAugmentations[data.activePersona],
       data.userPrompt,
       data.conversations,
-      data.customPersonas
+      data.customPersonas,
+      data.emojiMode
     );
 
     const assistantMessage: Message = {
@@ -90,7 +98,7 @@ const App: React.FC = () => {
       role: 'assistant',
       content: responseText,
       timestamp: Date.now(),
-      metadata: { contradictionDetected }
+      metadata: { contradictionDetected, fallacies }
     };
 
     setData(prev => {
@@ -220,12 +228,50 @@ const App: React.FC = () => {
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
 
+  const handleToggleEmojis = () => {
+    setData(prev => ({ ...prev, emojiMode: !prev.emojiMode }));
+  };
+
+  if (isInitializing) {
+    return (
+      <div className="h-screen w-full bg-[#05060b] flex flex-col items-center justify-center space-y-8 overflow-hidden animate-in fade-in duration-1000">
+        <div className="relative">
+          <div className="w-24 h-24 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_40px_rgba(6,182,212,0.2)]"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center animate-pulse">
+              <svg className="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div className="text-center space-y-3">
+          <h1 className="text-2xl mono font-bold text-slate-100 tracking-[0.6em] animate-pulse">SOPHIAI_INIT</h1>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] mono text-cyan-500/60 uppercase tracking-[0.3em] animate-bounce">Accessing reasoning matrix...</span>
+            <div className="mt-4 flex space-x-1">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="w-1.5 h-1.5 bg-cyan-500/20 rounded-full" style={{ animation: `pulse 1s infinite ${i * 0.2}s` }}></div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); background-color: #06b6d4; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden relative">
+    <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden relative animate-in fade-in duration-700">
       <Sidebar 
         conversations={data.conversations}
         activeId={data.currentConversationId}
-        onSelect={(id) => setData(prev => ({ ...prev, currentConversationId: id }))}
+        onSelect={(id) => { setData(prev => ({ ...prev, currentConversationId: id })); setActiveTab('chat'); }}
         onNew={() => {
            const id = crypto.randomUUID();
            setData(prev => ({
@@ -246,6 +292,8 @@ const App: React.FC = () => {
         customPersonas={data.customPersonas}
         onAddCustomPersona={() => setActiveTab('customise')}
         onDeleteCustomPersona={deleteCustomPersona}
+        emojiMode={data.emojiMode}
+        onToggleEmojis={handleToggleEmojis}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative z-10 bg-[#05060b]">
@@ -350,10 +398,10 @@ const App: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-2 pt-4 border-t border-slate-800/50">
                           <button 
-                            onClick={() => { setData(prev => ({...prev, activePersona: p.name})); setActiveTab('chat'); }} 
+                            onClick={() => { setData(prev => ({...prev, activePersona: p.name, currentConversationId: null})); setActiveTab('chat'); }} 
                             className="flex-1 text-[10px] text-slate-400 hover:text-amber-400 mono font-bold uppercase border border-slate-800 py-2 hover:border-amber-500 transition-all bg-black/20"
                           >
-                            RE-INITIALIZE
+                            INITIALIZE_DNA
                           </button>
                         </div>
                       </div>

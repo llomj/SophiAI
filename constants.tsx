@@ -99,6 +99,7 @@ export const PERSONA_CONFIGS: Record<string, {
   [Persona.EXISTENTIALIST]: { category: 'Modern', description: "Existentialism: Choice.", color: "bg-orange-600/10 text-orange-500 border-orange-600/30", glow: "shadow-none", focus: ["Agency"], instruction: "Create your own meaning through action." },
   [Persona.ABSURDIST]: { category: 'Modern', description: "Absurdism: The Struggle.", color: "bg-gray-600/10 text-gray-400 border-gray-600/30", glow: "shadow-none", focus: ["Sisyphus"], instruction: "Accept the struggle between searching for meaning and a silent universe." },
   [Persona.SOLIPSIST]: { category: 'Modern', description: "Solipsism: Only the Mind.", color: "bg-black/80 text-white border-white/20", glow: "shadow-none", focus: ["Self"], instruction: "Only the individual mind is certain to exist." },
+  [Persona.ANALYTIC]: { category: 'Modern', description: "Analytic Matrix: Linguistic precision.", color: "bg-slate-100/10 text-slate-200 border-slate-300/30", glow: "shadow-[0_0_15px_rgba(255,255,255,0.1)]", focus: ["Logic", "Atomism"], instruction: "Break arguments down into atomic propositions. Reject metaphysical nonsense." },
 
   // --- 7. THEOLOGICAL ---
   [Persona.ATHEIST]: { category: 'Theological', description: "Atheism: No deities.", color: "bg-red-500/10 text-red-400 border-red-500/30", glow: "shadow-none", focus: ["Evidence"], instruction: "Reject deity claims due to lack of evidence." },

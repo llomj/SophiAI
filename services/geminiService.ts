@@ -1,15 +1,22 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-import { Persona, Message, Conversation, Concept, CustomPersona } from "../types";
+import { Persona, Message, Conversation, Concept, CustomPersona, Fallacy } from "../types";
 import { PERSONA_CONFIGS } from "../constants";
 
 const UNIVERSAL_DEBATE_PROTOCOL = `
 [DEBATE_PROTOCOL_ACTIVE]
 - DIALECTICAL CHALLENGE: Do not just agree. Search for logical fallacies.
 - CONTRADICTION DETECTION: Flag inconsistencies with [LOGICAL_INCONSISTENCY].
+- FALLACY DETECTION: Identify specific logical fallacies in the user's reasoning or your own.
+  FORMAT: You MUST tag detected fallacies using the exact syntax: [FALLACY: Name | Definition | Example]
 - EPISTEMIC RIGOR: Force justifications and Novel Testable Predictions.
 - INTERACTIVE QUESTIONING: End turns with probing questions.
 - NO MONOLOGUES: Keep it punchy.
+`;
+
+const EMOJI_DIRECTIVE = `
+[VISUAL_ENRICHMENT_ACTIVE]
+- Integrate relevant emojis throughout your response to make the dialogue more engaging, visual, and expressive. Use them for emphasis and tone. ✨🧠🔥
 `;
 
 export const getPhilosophicalResponse = async (
@@ -20,8 +27,9 @@ export const getPhilosophicalResponse = async (
   personaAugmentation?: string,
   userPrompt?: string,
   allConversations: Conversation[] = [],
-  customPersonas: CustomPersona[] = []
-): Promise<{ text: string; contradictionDetected: boolean }> => {
+  customPersonas: CustomPersona[] = [],
+  emojiMode: boolean = false
+): Promise<{ text: string; contradictionDetected: boolean; fallacies: Fallacy[] }> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   // Resolve Persona Config
@@ -46,6 +54,10 @@ export const getPhilosophicalResponse = async (
   }
   
   let systemInstruction = personaConfig.instruction + "\n" + UNIVERSAL_DEBATE_PROTOCOL;
+
+  if (emojiMode) {
+    systemInstruction += "\n" + EMOJI_DIRECTIVE;
+  }
   
   if (userPrompt) {
     systemInstruction += `\n\n[GLOBAL_USER_PROFILE_DIRECTIVE]:
@@ -93,13 +105,29 @@ ${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_
       }
     });
 
-    const text = response.text || "Neural connection timeout.";
-    const contradictionDetected = text.includes("[LOGICAL_INCONSISTENCY]");
+    let rawText = response.text || "Neural connection timeout.";
+    const contradictionDetected = rawText.includes("[LOGICAL_INCONSISTENCY]");
+    
+    // Extract fallacies using regex
+    const fallacyRegex = /\[FALLACY:\s*([^|\]]+)\s*\|\s*([^|\]]+)\s*\|\s*([^\]]+)\]/g;
+    const fallacies: Fallacy[] = [];
+    let match;
+    
+    while ((match = fallacyRegex.exec(rawText)) !== null) {
+      fallacies.push({
+        name: match[1].trim(),
+        definition: match[2].trim(),
+        example: match[3].trim()
+      });
+    }
 
-    return { text, contradictionDetected };
+    // Clean text by removing fallacy tags for UI
+    const cleanedText = rawText.replace(fallacyRegex, "").trim();
+
+    return { text: cleanedText, contradictionDetected, fallacies };
   } catch (error) {
     console.error("Gemini Error:", error);
-    return { text: "API Error: Communication with the reasoning matrix failed.", contradictionDetected: false };
+    return { text: "API Error: Communication with the reasoning matrix failed.", contradictionDetected: false, fallacies: [] };
   }
 };
 

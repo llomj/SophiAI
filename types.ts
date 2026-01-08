@@ -90,6 +90,7 @@ export enum Persona {
   EXISTENTIALIST = 'Existentialist',
   ABSURDIST = 'Absurdist',
   SOLIPSIST = 'Solipsist',
+  ANALYTIC = 'Analytic Matrix',
 
   // 7. THEOLOGICAL
   ATHEIST = 'Atheist',
@@ -136,6 +137,12 @@ export enum Persona {
   SHADOW_GOV_THEORIST = 'Shadow Gov Theorist'
 }
 
+export interface Fallacy {
+  name: string;
+  definition: string;
+  example: string;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -144,6 +151,7 @@ export interface Message {
   metadata?: {
     contradictionDetected?: boolean;
     epistemicWarning?: string;
+    fallacies?: Fallacy[];
   };
 }
 
@@ -197,4 +205,5 @@ export interface SophiData {
   userPersonality: string;
   userPrompt: string;
   customPersonas: CustomPersona[];
+  emojiMode: boolean;
 }

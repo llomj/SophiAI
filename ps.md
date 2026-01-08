@@ -1,3 +1,4 @@
+
 # SophiAI Project Mandate
 
 ## 🚨 URGENT: DATA INTEGRITY & SOURCE PROTOCOL
@@ -9,6 +10,10 @@ The list of reasoning matrices (philosophical personas) is the core DNA of Sophi
 - **NEVER** remove or reset the `PERSONA_CONFIGS` in `constants.tsx`.
 - **SYNCHRONIZATION**: Any addition to the app's matrices must be mirrored in `matrix_models.md`.
 - **STABILIZATION**: The full library of 100+ models from `matrix_models.md` has been synced into the active codebase.
+
+### THE LAYOUT RESTRAINT
+- **NEVER** change the layout structure, grid definitions, sidebar width, or core component positioning unless specifically requested.
+- **CONSISTENCY**: Ensure all new features fit within the established cyber-philosophy aesthetic without disrupting the existing navigation flow.
 
 ## PERSISTENT FORGE REPOSITORIES
 1. **Persona Forge (`/persona_forge/`)**: Contains hardcoded philosophical DNA (e.g., TJump axioms).

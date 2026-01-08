@@ -19,6 +19,8 @@ interface SidebarProps {
   customPersonas: CustomPersona[];
   onAddCustomPersona: () => void;
   onDeleteCustomPersona: (id: string) => void;
+  emojiMode: boolean;
+  onToggleEmojis: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -36,7 +38,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   customPersonas,
   onAddCustomPersona,
-  onDeleteCustomPersona
+  onDeleteCustomPersona,
+  emojiMode,
+  onToggleEmojis
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{id: string, name: string} | null>(null);
@@ -156,9 +160,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                   </svg>
                 </div>
-                <div>
-                  <h1 className="text-base font-bold tracking-tighter text-slate-100 mono leading-none">SophiAI</h1>
-                  <span className="text-[6px] mono text-cyan-500/50 uppercase tracking-[0.2em]">Neural_Matrix</span>
+                <div className="flex items-center space-x-2">
+                  <div>
+                    <h1 className="text-base font-bold tracking-tighter text-slate-100 mono leading-none">SophiAI</h1>
+                    <span className="text-[6px] mono text-cyan-500/50 uppercase tracking-[0.2em]">Neural_Matrix</span>
+                  </div>
+                  <button 
+                    onClick={onToggleEmojis}
+                    className={`p-1.5 rounded-full transition-all duration-500 group relative flex items-center justify-center ${emojiMode ? 'bg-amber-400/10 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-slate-900/40 hover:bg-slate-800/60'}`}
+                    title={emojiMode ? "Disable Emoji Synthesis" : "Enable Emoji Synthesis"}
+                  >
+                    <span className={`text-[14px] leading-none transition-transform duration-300 ${emojiMode ? 'grayscale-0 scale-110 animate-pulse' : 'grayscale opacity-40 hover:grayscale-0 hover:opacity-100'}`}>😊</span>
+                  </button>
                 </div>
               </div>
               <button onClick={onToggle} className="lg:hidden p-1.5 text-slate-400 hover:text-white bg-slate-800/40 rounded-sm">
@@ -191,27 +204,27 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-black/5">
-          <div className="p-3 space-y-5">
+          <div className="p-3 space-y-6">
             {/* Custom Section */}
             <div>
-              <div className="flex items-center justify-between px-2 mb-2">
-                <span className="text-[10px] mono text-amber-500 uppercase tracking-[0.3em] font-bold">CUSTOMISE</span>
-                <div className="flex space-x-1">
+              <div className="flex items-center justify-between px-2 mb-3">
+                <span className="text-[11px] mono text-amber-500 uppercase tracking-[0.4em] font-black border-b border-amber-500/30 pb-1 w-full">CUSTOMISE</span>
+              </div>
+              <div className="px-2 mb-3 flex space-x-1">
+                <button 
+                  onClick={handleAddNewClick} 
+                  className="flex-1 text-[10px] bg-amber-500/10 border border-amber-500/40 px-2 py-1.5 text-amber-400 hover:bg-amber-500 hover:text-slate-950 mono uppercase font-bold transition-all rounded-sm shadow-[0_0_10px_rgba(245,158,11,0.1)]"
+                >
+                  + ADD_NEW
+                </button>
+                {activeCustom && (
                   <button 
-                    onClick={handleAddNewClick} 
-                    className="text-[10px] bg-amber-500/10 border border-amber-500/40 px-2 py-1.5 text-amber-400 hover:bg-amber-500 hover:text-slate-950 mono uppercase font-bold transition-all rounded-sm shadow-[0_0_10px_rgba(245,158,11,0.1)]"
+                    onClick={() => setPendingDelete({id: activeCustom.id, name: activePersona})} 
+                    className="text-[10px] bg-red-500/10 border border-red-500/40 px-2 py-1.5 text-red-400 hover:bg-red-500 hover:text-slate-950 mono uppercase font-bold transition-all rounded-sm shadow-[0_0_10px_rgba(239,68,68,0.1)]"
                   >
-                    + ADD_NEW
+                    PURGE
                   </button>
-                  {activeCustom && (
-                    <button 
-                      onClick={() => setPendingDelete({id: activeCustom.id, name: activePersona})} 
-                      className="text-[10px] bg-red-500/10 border border-red-500/40 px-2 py-1.5 text-red-400 hover:bg-red-500 hover:text-slate-950 mono uppercase font-bold transition-all rounded-sm shadow-[0_0_10px_rgba(239,68,68,0.1)]"
-                    >
-                      DELETE
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-1.5">
                 {filteredCustomPersonas.map(p => {
@@ -220,10 +233,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <div key={p.id} className="flex items-center space-x-1 group">
                       <button 
                         onClick={() => handlePersonaSelect(p.name)} 
-                        className={`flex-1 text-left px-2.5 py-2 rounded-sm text-[9px] mono border transition-all truncate ${
+                        className={`flex-1 text-left px-2.5 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm ${
                           isActive 
-                            ? `bg-amber-500/10 text-amber-400 border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)]` 
-                            : 'border-slate-800/40 bg-slate-900/20 text-slate-500 hover:text-slate-300'
+                            ? `bg-amber-500/20 text-amber-400 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)] z-10` 
+                            : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-lg'
                         }`}
                       >
                         {p.name.toUpperCase()}
@@ -237,12 +250,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Core Personas Section */}
             {Object.entries(sortedPersonasByCategory).map(([category, personas]) => (
               <div key={category}>
-                <div className="flex items-center justify-between px-2 mb-1">
-                  <span className="text-[7px] mono text-slate-700 uppercase tracking-[0.3em] font-bold">
+                <div className="flex items-center justify-between px-2 mb-3">
+                  <span className="text-[11px] mono text-slate-400 uppercase tracking-[0.4em] font-black border-b border-slate-800 pb-1 w-full">
                     {category === 'Influences' ? 'INTELLECTUAL INFLUENCES' : category.toUpperCase()}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 gap-1.5">
+                <div className="grid grid-cols-1 gap-2 px-1">
                   {personas.map(p => {
                     const config = PERSONA_CONFIGS[p];
                     const isActive = activePersona === p;
@@ -250,10 +263,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <button 
                         key={p} 
                         onClick={() => handlePersonaSelect(p)} 
-                        className={`w-full text-left px-2.5 py-2 rounded-sm text-[9px] mono border transition-all truncate ${
+                        className={`w-full text-left px-3 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm truncate ${
                           isActive 
-                            ? `${config.color} ${config.glow} border-current ring-1 ring-current/20` 
-                            : 'border-slate-800/40 bg-slate-900/20 text-slate-500 hover:text-slate-300'
+                            ? `${config.color} ${config.glow} border-current ring-1 ring-current/20 z-10 font-bold` 
+                            : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-xl'
                         }`}
                       >
                         {p.toUpperCase()}
@@ -266,13 +279,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        <div className="px-4 py-1.5 border-y border-slate-800 bg-[#05060b] shrink-0">
-          <label className="text-[7px] uppercase font-bold text-slate-700 tracking-[0.2em] mono">Archive</label>
+        <div className="px-4 py-2 border-y border-slate-800 bg-[#05060b] shrink-0">
+          <label className="text-[9px] uppercase font-black text-slate-600 tracking-[0.3em] mono">Archive</label>
         </div>
 
         <div className="h-1/5 overflow-y-auto px-2 py-2 space-y-1 custom-scrollbar bg-black/10 shrink-0">
           {conversations.map(conv => (
-            <button key={conv.id} onClick={() => handleSelectConversation(conv.id)} className={`w-full text-left px-2 py-1.5 rounded-sm transition-all ${activeId === conv.id ? 'bg-slate-800/40 text-cyan-400' : 'text-slate-600 hover:text-slate-400'}`}>
+            <button 
+              key={conv.id} 
+              onClick={() => handleSelectConversation(conv.id)} 
+              className={`w-full text-left px-3 py-2 rounded-sm transition-all duration-300 hover:scale-[1.02] hover:bg-white/5 ${activeId === conv.id ? 'bg-slate-800/60 text-cyan-400 border border-cyan-500/20 shadow-md' : 'text-slate-600 hover:text-slate-300 border border-transparent'}`}
+            >
               <div className="text-[9px] font-bold truncate uppercase tracking-tight">{conv.title}</div>
             </button>
           ))}
@@ -280,11 +297,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="p-3 border-t border-slate-800 bg-[#0a0b10] pb-[env(safe-area-inset-bottom)] shrink-0">
           <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => { onOpenUserPrompt(); if(window.innerWidth < 1024) onToggle?.(); }} className="text-[8px] text-slate-500 hover:text-cyan-400 flex items-center justify-center space-x-1 mono transition-all py-1.5 border border-slate-800 bg-slate-900/40 rounded-sm">
+            <button onClick={() => { onOpenUserPrompt(); if(window.innerWidth < 1024) onToggle?.(); }} className="text-[8px] text-slate-500 hover:text-cyan-400 flex items-center justify-center space-x-1 mono transition-all py-1.5 border border-slate-800 bg-slate-900/40 rounded-sm hover:border-cyan-500/30">
               <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               <span>ID</span>
             </button>
-            <button onClick={() => { onOpenUserLog(); if(window.innerWidth < 1024) onToggle?.(); }} className="text-[8px] text-slate-500 hover:text-cyan-400 flex items-center justify-center space-x-1 mono transition-all py-1.5 border border-slate-800 bg-slate-900/40 rounded-sm">
+            <button onClick={() => { onOpenUserLog(); if(window.innerWidth < 1024) onToggle?.(); }} className="text-[8px] text-slate-500 hover:text-cyan-400 flex items-center justify-center space-x-1 mono transition-all py-1.5 border border-slate-800 bg-slate-900/40 rounded-sm hover:border-cyan-500/30">
               <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.082.477 4.5 1.253" /></svg>
               <span>LOG</span>
             </button>

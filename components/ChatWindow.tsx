@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Message, Persona, Note, CustomPersona } from '../types';
+import { Message, Persona, Note, CustomPersona, Fallacy } from '../types';
 import { PERSONA_CONFIGS } from '../constants';
 import { GoogleGenAI, Modality } from "@google/genai";
 
@@ -57,6 +57,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   const [isTtsLoading, setIsTtsLoading] = useState<string | null>(null);
+  const [activeFallacies, setActiveFallacies] = useState<Fallacy[] | null>(null);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -181,6 +182,49 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     <div className="flex flex-col h-full bg-[#0d0f17] rounded-none lg:rounded-sm border-0 lg:border lg:border-slate-800 shadow-2xl relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#2dd4bf 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }}></div>
 
+      {/* Fallacy Pop-up Overlay */}
+      {activeFallacies && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#0a0b10] border border-amber-500/50 p-6 max-w-lg w-full shadow-[0_0_50px_rgba(245,158,11,0.2)] rounded-sm relative">
+            <button 
+              onClick={() => setActiveFallacies(null)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-10 h-10 border border-amber-500/40 bg-amber-500/10 flex items-center justify-center text-amber-500">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <div>
+                <h3 className="mono text-amber-400 font-bold uppercase tracking-widest text-sm">Logical_Fallacy_Detected</h3>
+                <p className="text-[8px] mono text-slate-600 uppercase tracking-widest">Protocol: REASONING_CHECK_V2</p>
+              </div>
+            </div>
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+              {activeFallacies.map((f, i) => (
+                <div key={i} className="space-y-2 border-l-2 border-amber-500/20 pl-4 py-1">
+                  <h4 className="mono text-amber-200 text-xs font-bold uppercase">{f.name}</h4>
+                  <p className="text-xs text-slate-400 serif italic leading-relaxed">"{f.definition}"</p>
+                  <div className="bg-amber-500/5 border border-amber-500/10 p-3 rounded-sm">
+                    <span className="text-[9px] mono text-amber-500/50 block mb-1 uppercase tracking-tighter">Instance:</span>
+                    <p className="text-xs text-slate-500 serif italic">"{f.example}"</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 pt-4 border-t border-slate-800 flex justify-center">
+              <button 
+                onClick={() => setActiveFallacies(null)}
+                className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 mono text-[10px] font-bold uppercase tracking-widest transition-all"
+              >
+                DISMISS_WARNING
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-4 lg:px-6 py-4 border-b border-slate-800 flex flex-col space-y-3 bg-black/40 backdrop-blur-md z-50">
         <div className="flex items-center justify-between">
@@ -204,6 +248,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {messages.map((msg) => {
           const isAIVoiceLoading = isTtsLoading === msg.id;
           const isAIVoiceSpeaking = speakingMsgId === msg.id;
+          const hasFallacies = msg.metadata?.fallacies && msg.metadata.fallacies.length > 0;
+          const hasInconsistency = msg.metadata?.contradictionDetected;
 
           return (
             <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -212,6 +258,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   ? 'bg-slate-900/80 text-cyan-50 border-cyan-500/20 rounded-sm rounded-tr-none' 
                   : `bg-black/60 text-slate-300 border-slate-800 rounded-sm rounded-tl-none ${isAIVoiceSpeaking ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : ''}`
               }`}>
+                
+                {/* Fallacy/Inconsistency Badges */}
+                {msg.role === 'assistant' && (hasFallacies || hasInconsistency) && (
+                  <div className="absolute -top-3 left-4 flex space-x-2">
+                    {hasInconsistency && (
+                      <div className="px-2 py-0.5 bg-red-600 text-white text-[8px] mono font-bold rounded-sm shadow-lg uppercase tracking-tighter">
+                        LOGICAL_INCONSISTENCY
+                      </div>
+                    )}
+                    {hasFallacies && (
+                      <button 
+                        onClick={() => setActiveFallacies(msg.metadata?.fallacies || null)}
+                        className="px-2 py-0.5 bg-amber-500 text-slate-950 text-[8px] mono font-bold rounded-sm shadow-lg uppercase tracking-tighter hover:bg-amber-400 transition-all flex items-center space-x-1"
+                      >
+                        <span className="animate-pulse">⚠️</span>
+                        <span>FALLACIES_DETECTED</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {msg.role === 'assistant' && (
                   <button 
                     onClick={() => handleSpeak(msg)}
