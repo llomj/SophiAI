@@ -1,10 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#05060b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>SophiAI | Cyber-Philosophy</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2103/2103633.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&family=Inter:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -15,6 +19,7 @@
             color: #e2e8f0;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
         .serif {
             font-family: 'Crimson Pro', serif;
@@ -25,6 +30,7 @@
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 4px;
+            height: 4px;
         }
         ::-webkit-scrollbar-track {
             background: #0a0b10;
@@ -47,6 +53,14 @@
             background: rgba(15, 17, 26, 0.8);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(45, 212, 191, 0.1);
+        }
+        /* Touch friendly optimizations */
+        button, select, input, textarea {
+            touch-action: manipulation;
+        }
+        @supports (padding: env(safe-area-inset-top)) {
+            .safe-top { padding-top: env(safe-area-inset-top); }
+            .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         }
     </style>
 <script type="importmap">
