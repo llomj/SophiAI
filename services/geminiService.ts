@@ -40,7 +40,24 @@ export const getPhilosophicalResponse = async (
   customPersonas: CustomPersona[] = [],
   emojiMode: boolean = false
 ): Promise<{ text: string; contradictionDetected: boolean; fallacies: Fallacy[] }> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  
+  if (!apiKey || apiKey === 'null' || apiKey === 'undefined') {
+    console.error("❌ API Key is missing!");
+    console.error("Please create a .env.local file in the project root with:");
+    console.error("GEMINI_API_KEY=your_api_key_here");
+    console.error("Get your API key from: https://aistudio.google.com/app/apikey");
+    console.error("Then restart the dev server with: npm run dev");
+    
+    return { 
+      text: "🔑 API key not configured.\n\nPlease:\n1. Create a .env.local file in the project root\n2. Add: GEMINI_API_KEY=your_api_key_here\n3. Get your key from: https://aistudio.google.com/app/apikey\n4. Restart the dev server", 
+      contradictionDetected: false, 
+      fallacies: [] 
+    };
+  }
+  
+  console.log("✅ API Key loaded, length:", apiKey.length);
+  const ai = new GoogleGenAI({ apiKey });
   
   // Resolve Persona Config
   let personaConfig = PERSONA_CONFIGS[persona];
@@ -97,6 +114,7 @@ export const getPhilosophicalResponse = async (
   contents.push({ role: 'user', parts: [{ text: userInput }] });
 
   try {
+    console.log("Calling Gemini API with model: gemini-3-flash-preview");
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents,
@@ -108,6 +126,9 @@ export const getPhilosophicalResponse = async (
     });
 
     let rawText = response.text || "Neural connection timeout.";
+    if (!rawText || rawText === "Neural connection timeout.") {
+      console.warn("API response had no text content:", response);
+    }
     const contradictionDetected = rawText.includes("[LOGICAL_INCONSISTENCY]");
     
     const fallacyRegex = /\[FALLACY:\s*([^|\]]+)\s*\|\s*([^|\]]+)\s*\|\s*([^\]]+)\]/g;
@@ -124,14 +145,23 @@ export const getPhilosophicalResponse = async (
 
     const cleanedText = rawText.replace(fallacyRegex, "").trim();
     return { text: cleanedText, contradictionDetected, fallacies };
-  } catch (error) {
-    console.error("Gemini Error:", error);
-    return { text: "API Error: Communication with the reasoning matrix failed.", contradictionDetected: false, fallacies: [] };
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    const errorMessage = error?.message || error?.toString() || "Unknown error";
+    const errorText = errorMessage.includes("API key") 
+      ? "Error: Invalid or missing API key. Please check your GEMINI_API_KEY in .env file."
+      : `API Error: ${errorMessage}`;
+    return { text: errorText, contradictionDetected: false, fallacies: [] };
   }
 };
 
 export const extractConceptsFromText = async (conversationText: string, existingConceptLabels: string[]): Promise<Partial<Concept>[]> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.error("API Key is missing for concept extraction!");
+    return [];
+  }
+  const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',

@@ -4,7 +4,19 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
+  // Load env files - Vite automatically loads .env, .env.local, .env.[mode], .env.[mode].local
+  const env = loadEnv(mode, process.cwd(), '');
+  const apiKey = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || '';
+  
+  if (!apiKey) {
+    console.warn('\n⚠️  ⚠️  ⚠️  WARNING: GEMINI_API_KEY not found! ⚠️  ⚠️  ⚠️');
+    console.warn('Please create a .env.local file in the project root with:');
+    console.warn('GEMINI_API_KEY=your_api_key_here\n');
+    console.warn('Get your API key from: https://aistudio.google.com/app/apikey\n');
+  } else {
+    console.log('✅ API Key loaded successfully');
+  }
+  
   return {
     base: '/SophiAI/',
     server: {
@@ -66,8 +78,9 @@ export default defineConfig(({ mode }) => {
       })
     ],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      // Use null instead of empty string or undefined to make checking easier
+      'process.env.API_KEY': apiKey ? JSON.stringify(apiKey) : 'null',
+      'process.env.GEMINI_API_KEY': apiKey ? JSON.stringify(apiKey) : 'null'
     },
     resolve: {
       alias: {

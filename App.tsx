@@ -77,13 +77,20 @@ const App: React.FC = () => {
 
     const userMessage: Message = { id: crypto.randomUUID(), role: 'user', content: text, timestamp: Date.now() };
 
+    // Update the conversation locally to include the user message before API call
+    const currentConv = updatedConversations.find(c => c.id === currentId);
+    const messagesWithUser = currentConv ? [...currentConv.messages, userMessage] : [userMessage];
+    
+    // Update the local conversations array
+    updatedConversations = updatedConversations.map(c => 
+      c.id === currentId ? { ...c, messages: messagesWithUser, updatedAt: Date.now() } : c
+    );
+
     setArchive(prev => {
       if (!prev) return null;
       return {
         ...prev,
-        conversations: updatedConversations.map(c => 
-          c.id === currentId ? { ...c, messages: [...c.messages, userMessage], updatedAt: Date.now() } : c
-        )
+        conversations: updatedConversations
       };
     });
 
@@ -91,7 +98,7 @@ const App: React.FC = () => {
     try {
       const { text: responseText, contradictionDetected, fallacies } = await getPhilosophicalResponse(
         activePersona, 
-        updatedConversations.find(c => c.id === currentId)?.messages || [], 
+        messagesWithUser, 
         text, 
         archive.notes.find(n => n.id === archive.activeContextNoteId)?.content,
         archive.personaAugmentations[activePersona],
@@ -119,7 +126,24 @@ const App: React.FC = () => {
         };
       });
     } catch (e) {
-      console.error("Neural Connection Severed.");
+      console.error("Neural Connection Severed:", e);
+      // Show error message to user
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `Error: ${e instanceof Error ? e.message : 'Communication with the reasoning matrix failed.'}`,
+        timestamp: Date.now(),
+        metadata: { contradictionDetected: false, fallacies: [] }
+      };
+      setArchive(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          conversations: prev.conversations.map(c => 
+            c.id === currentId ? { ...c, messages: [...c.messages, errorMessage], updatedAt: Date.now() } : c
+          )
+        };
+      });
     } finally {
       setIsLoading(false);
     }

@@ -112,7 +112,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
     setIsTtsLoading(msg.id);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.error("API Key is missing for TTS!");
+        setIsTtsLoading(null);
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: msg.content }] }],

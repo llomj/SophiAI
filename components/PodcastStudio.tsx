@@ -96,7 +96,12 @@ const PodcastStudio: React.FC<PodcastStudioProps> = () => {
     
     setIsGeneratingNext(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.error("API Key is missing!");
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey });
       // LARGE CONTEXT: Last 30 messages (~2000 words)
       const recentHistory = history.slice(-30).map(m => {
         const roleName = m.role === 'user' ? 'HOST' : (history.indexOf(m) % 2 === 0 ? speakerA : speakerB);
