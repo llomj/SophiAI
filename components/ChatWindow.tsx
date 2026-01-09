@@ -257,12 +257,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           const hasInconsistency = msg.metadata?.contradictionDetected;
 
           return (
-            <div key={msg.id} className="flex w-full justify-start">
+            <div key={msg.id} className="flex w-full justify-start items-start">
               <div className={`max-w-[95%] lg:max-w-[85%] px-4 py-3 border relative transition-all duration-500 ${
                 msg.role === 'user' 
-                  ? 'bg-slate-900/80 text-cyan-50 border-cyan-500/20 rounded-sm rounded-tr-none' 
-                  : `bg-black/60 text-slate-300 border-slate-800 rounded-sm rounded-tl-none ${isAIVoiceSpeaking ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : ''}`
-              }`}>
+                  ? 'bg-slate-900/80 text-cyan-50 border-cyan-500/20 rounded-sm' 
+                  : `bg-black/60 text-slate-300 border-slate-800 rounded-sm ${isAIVoiceSpeaking ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : ''}`
+              }`} style={{ marginLeft: 0, marginRight: 'auto' }}>
                 
                 {msg.role === 'assistant' && (hasFallacies || hasInconsistency) && (
                   <div className="absolute -top-3 left-2 flex space-x-1">
