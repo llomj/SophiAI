@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -11,7 +12,9 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2103/2103633.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&family=Inter:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600;700&family=Inter:wght@300;400;500;600&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -21,49 +24,68 @@
             padding: 0;
             -webkit-tap-highlight-color: transparent;
         }
+
         .serif {
             font-family: 'Crimson Pro', serif;
         }
+
         .mono {
             font-family: 'Share Tech Mono', monospace;
         }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 4px;
             height: 4px;
         }
+
         ::-webkit-scrollbar-track {
             background: #0a0b10;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #1e293b;
             border-radius: 0px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #2dd4bf;
         }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
         .cyber-panel {
             background: rgba(15, 17, 26, 0.8);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(45, 212, 191, 0.1);
         }
+
         /* Touch friendly optimizations */
-        button, select, input, textarea {
+        button,
+        select,
+        input,
+        textarea {
             touch-action: manipulation;
         }
+
         @supports (padding: env(safe-area-inset-top)) {
-            .safe-top { padding-top: env(safe-area-inset-top); }
-            .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+            .safe-top {
+                padding-top: env(safe-area-inset-top);
+            }
+
+            .safe-bottom {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
         }
     </style>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react/": "https://esm.sh/react@^19.2.3/",
@@ -75,8 +97,9 @@
 }
 </script>
 </head>
+
 <body class="overflow-hidden bg-[#05060b]">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
