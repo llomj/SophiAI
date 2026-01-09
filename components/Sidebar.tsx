@@ -49,11 +49,24 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{id: string, name: string} | null>(null);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   
   // Topic Modal State
   const [selectedCategoryIdx, setSelectedCategoryIdx] = useState(0);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedTargetPersona, setSelectedTargetPersona] = useState(activePersona);
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+  };
 
   const activeCustom = useMemo(() => 
     customPersonas.find(p => p.name === activePersona), 
@@ -394,34 +407,58 @@ const Sidebar: React.FC<SidebarProps> = ({
                 No matrices found for "{searchTerm}"
               </div>
             ) : (
-              (Object.entries(sortedPersonasByCategory) as [string, string[]][]).map(([category, personas]) => (
-                <div key={category}>
-                  <div className="flex items-center justify-between px-2 mb-4">
-                    <span className="text-[13px] mono text-slate-100 uppercase tracking-[0.5em] font-black border-b-2 border-slate-700/50 pb-1.5 w-full">
-                      {category === 'Influences' ? 'INTELLECTUAL INFLUENCES' : category.toUpperCase()}
-                    </span>
+              (Object.entries(sortedPersonasByCategory) as [string, string[]][]).map(([category, personas]) => {
+                const isExpanded = expandedCategories.has(category) || searchTerm.length > 0;
+                const categoryDisplayName = category === 'Influences' ? 'INTELLECTUAL INFLUENCES' : category.toUpperCase();
+                
+                return (
+                  <div key={category} className="mb-4">
+                    <button
+                      onClick={() => toggleCategory(category)}
+                      className="flex items-center justify-between w-full px-2 mb-2 hover:bg-slate-800/20 rounded-sm transition-all group"
+                    >
+                      <span className="text-[13px] mono text-slate-100 uppercase tracking-[0.5em] font-black border-b-2 border-slate-700/50 pb-1.5 w-full text-left">
+                        {categoryDisplayName}
+                      </span>
+                      <svg 
+                        className={`w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    {isExpanded && (
+                      <div className="grid grid-cols-1 gap-2 px-1 animate-in slide-in-from-top-2 duration-200">
+                        {personas.length === 0 ? (
+                          <div className="text-[8px] text-slate-600 mono px-3 py-2 text-center">
+                            No matrices in this category
+                          </div>
+                        ) : (
+                          personas.map(p => {
+                            const config = PERSONA_CONFIGS[p];
+                            const isActive = activePersona === p;
+                            return (
+                              <button 
+                                key={p} 
+                                onClick={() => handlePersonaSelect(p)} 
+                                className={`w-full text-left px-3 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm truncate ${
+                                  isActive 
+                                    ? `${config.color} ${config.glow} border-current ring-1 ring-current/20 z-10 font-bold` 
+                                    : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-xl'
+                                }`}
+                              >
+                                {p.toUpperCase()}
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-1 gap-2 px-1">
-                    {personas.map(p => {
-                      const config = PERSONA_CONFIGS[p];
-                      const isActive = activePersona === p;
-                      return (
-                        <button 
-                          key={p} 
-                          onClick={() => handlePersonaSelect(p)} 
-                          className={`w-full text-left px-3 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm truncate ${
-                            isActive 
-                              ? `${config.color} ${config.glow} border-current ring-1 ring-current/20 z-10 font-bold` 
-                              : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-xl'
-                          }`}
-                        >
-                          {p.toUpperCase()}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
