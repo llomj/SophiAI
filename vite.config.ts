@@ -21,25 +21,30 @@ export default defineConfig(({ mode }) => {
           short_name: 'SophiAI',
           description: 'Minimal Text-Only Philosophical Terminal optimized for local environments.',
           theme_color: '#05060b',
-          start_url: '/SophiAI/',
+          background_color: '#05060b',
+          start_url: '/SophiAI/index.html',
           scope: '/SophiAI/',
           display: 'standalone',
+          orientation: 'portrait',
           icons: [
             {
               src: 'https://cdn-icons-png.flaticon.com/512/2103/2103633.png',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
               src: 'https://cdn-icons-png.flaticon.com/512/2103/2103633.png',
               sizes: '512x512',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webmanifest}'],
-          navigateFallback: '/SophiAI/index.html'
+          navigateFallback: '/SophiAI/index.html',
+          navigateFallbackAllowlist: [/^\/SophiAI\//]
         }
       })
     ],
