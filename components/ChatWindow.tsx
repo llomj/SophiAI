@@ -156,12 +156,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSend = () => {
     if (!input.trim() || isLoading) return;
-    onSendMessage(input);
+    onSendMessage(input.trim());
     setInput('');
     if (isListening) recognitionRef.current?.stop();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   // Improved Persona Resolution: Check custom personas first, then built-in, then fallback.
@@ -235,7 +241,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             <div className="flex items-center space-x-3 min-w-0 flex-1">
               <div className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${resolvedPersona.color.split(' ')[1]}`}></div>
               <div className="min-w-0 flex-1">
-                <h2 className="font-bold text-slate-100 text-[11px] lg:text-sm mono tracking-tight whitespace-normal break-words uppercase">{resolvedPersona.description}</h2>
+                <h2 className="font-bold text-slate-100 text-[11px] lg:text-sm mono tracking-tighter whitespace-normal break-words uppercase">{resolvedPersona.description}</h2>
                 <p className="text-[9px] text-slate-500 mono uppercase tracking-widest truncate">Matrix: <span className={resolvedPersona.color.split(' ')[1]}>{activePersona}</span></p>
               </div>
             </div>
@@ -315,35 +321,40 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="px-4 pt-4 border-t border-slate-800 bg-black/40 z-10 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:pb-4">
-        <div className="relative flex items-center space-x-2">
+      <div className="px-4 pt-4 border-t border-slate-800 bg-black/40 z-10 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:pb-4">
+        <div className="relative flex items-end space-x-2">
           <div className="relative flex-1">
-            <input
-              type="text"
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
               disabled={isLoading}
+              rows={Math.min(5, input.split('\n').length || 1)}
               placeholder={isListening ? "LISTENING..." : "SEND_INPUT..."}
-              className={`w-full pl-4 pr-12 py-4 lg:py-3 bg-[#0a0b10] border rounded-sm focus:outline-none transition-all text-sm mono text-slate-200 ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-slate-800 focus:border-cyan-500/50'}`}
+              className={`w-full pl-4 pr-12 py-3 bg-[#0a0b10] border rounded-sm focus:outline-none transition-all text-sm mono text-slate-200 resize-none whitespace-pre-wrap leading-relaxed custom-scrollbar ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-slate-800 focus:border-cyan-500/50'}`}
             />
-            <button
-              type="button"
-              onClick={toggleListening}
-              className={`absolute right-12 top-2 bottom-2 px-2 transition-all flex items-center justify-center rounded-full ${isListening ? 'text-cyan-400 bg-cyan-500/10 scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-500 hover:text-slate-300'}`}
-              title="Dictation"
-            >
-              <svg className={`w-5 h-5 ${isListening ? 'animate-pulse' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-            </button>
-            <button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className="absolute right-2 top-2 bottom-2 px-3 bg-cyan-500 text-slate-900 hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] rounded-sm"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
-            </button>
+            <div className="absolute right-12 bottom-2.5 flex items-center">
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`p-1.5 transition-all flex items-center justify-center rounded-full ${isListening ? 'text-cyan-400 bg-cyan-500/10 scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-500 hover:text-slate-300'}`}
+                title="Dictation"
+              >
+                <svg className={`w-5 h-5 ${isListening ? 'animate-pulse' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+              </button>
+            </div>
+            <div className="absolute right-2 bottom-2">
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                className="p-2.5 bg-cyan-500 text-slate-900 hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] rounded-sm"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+              </button>
+            </div>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

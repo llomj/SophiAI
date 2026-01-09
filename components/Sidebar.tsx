@@ -248,7 +248,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {/* Core Personas Section */}
-            {Object.entries(sortedPersonasByCategory).map(([category, personas]) => (
+            {/* Fixed potential unknown type error by casting Object.entries */}
+            {(Object.entries(sortedPersonasByCategory) as [string, string[]][]).map(([category, personas]) => (
               <div key={category}>
                 <div className="flex items-center justify-between px-2 mb-3">
                   <span className="text-[11px] mono text-slate-400 uppercase tracking-[0.4em] font-black border-b border-slate-800 pb-1 w-full">
@@ -284,7 +285,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="h-1/5 overflow-y-auto px-2 py-2 space-y-1 custom-scrollbar bg-black/10 shrink-0">
-          {conversations.map(conv => (
+          {/* Fixed unknown type error by ensuring conversations is treated as Conversation[] */}
+          {(conversations as Conversation[]).map(conv => (
             <button 
               key={conv.id} 
               onClick={() => handleSelectConversation(conv.id)} 
