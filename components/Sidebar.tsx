@@ -363,54 +363,66 @@ const Sidebar: React.FC<SidebarProps> = ({
                 )}
               </div>
               <div className="grid grid-cols-1 gap-1.5">
-                {filteredCustomPersonas.map(p => {
-                  const isActive = activePersona === p.name;
-                  return (
-                    <div key={p.id} className="flex items-center space-x-1 group">
-                      <button 
-                        onClick={() => handlePersonaSelect(p.name)} 
-                        className={`flex-1 text-left px-2.5 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm ${
-                          isActive 
-                            ? `bg-amber-500/20 text-amber-400 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)] z-10` 
-                            : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-lg'
-                        }`}
-                      >
-                        {p.name.toUpperCase()}
-                      </button>
-                    </div>
-                  );
-                })}
+                {filteredCustomPersonas.length === 0 && searchTerm ? (
+                  <div className="text-[8px] text-slate-600 mono px-2.5 py-2.5 text-center">
+                    No custom matrices found
+                  </div>
+                ) : (
+                  filteredCustomPersonas.map(p => {
+                    const isActive = activePersona === p.name;
+                    return (
+                      <div key={p.id} className="flex items-center space-x-1 group">
+                        <button 
+                          onClick={() => handlePersonaSelect(p.name)} 
+                          className={`flex-1 text-left px-2.5 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm ${
+                            isActive 
+                              ? `bg-amber-500/20 text-amber-400 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)] z-10` 
+                              : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-lg'
+                          }`}
+                        >
+                          {p.name.toUpperCase()}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
-            {(Object.entries(sortedPersonasByCategory) as [string, string[]][]).map(([category, personas]) => (
-              <div key={category}>
-                <div className="flex items-center justify-between px-2 mb-4">
-                  <span className="text-[13px] mono text-slate-100 uppercase tracking-[0.5em] font-black border-b-2 border-slate-700/50 pb-1.5 w-full">
-                    {category === 'Influences' ? 'INTELLECTUAL INFLUENCES' : category.toUpperCase()}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 gap-2 px-1">
-                  {personas.map(p => {
-                    const config = PERSONA_CONFIGS[p];
-                    const isActive = activePersona === p;
-                    return (
-                      <button 
-                        key={p} 
-                        onClick={() => handlePersonaSelect(p)} 
-                        className={`w-full text-left px-3 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm truncate ${
-                          isActive 
-                            ? `${config.color} ${config.glow} border-current ring-1 ring-current/20 z-10 font-bold` 
-                            : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-xl'
-                        }`}
-                      >
-                        {p.toUpperCase()}
-                      </button>
-                    );
-                  })}
-                </div>
+            {Object.keys(sortedPersonasByCategory).length === 0 && searchTerm ? (
+              <div className="text-[8px] text-slate-600 mono px-2 py-4 text-center">
+                No matrices found for "{searchTerm}"
               </div>
-            ))}
+            ) : (
+              (Object.entries(sortedPersonasByCategory) as [string, string[]][]).map(([category, personas]) => (
+                <div key={category}>
+                  <div className="flex items-center justify-between px-2 mb-4">
+                    <span className="text-[13px] mono text-slate-100 uppercase tracking-[0.5em] font-black border-b-2 border-slate-700/50 pb-1.5 w-full">
+                      {category === 'Influences' ? 'INTELLECTUAL INFLUENCES' : category.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 px-1">
+                    {personas.map(p => {
+                      const config = PERSONA_CONFIGS[p];
+                      const isActive = activePersona === p;
+                      return (
+                        <button 
+                          key={p} 
+                          onClick={() => handlePersonaSelect(p)} 
+                          className={`w-full text-left px-3 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm truncate ${
+                            isActive 
+                              ? `${config.color} ${config.glow} border-current ring-1 ring-current/20 z-10 font-bold` 
+                              : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-xl'
+                          }`}
+                        >
+                          {p.toUpperCase()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -419,15 +431,35 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="h-1/5 overflow-y-auto px-2 py-2 space-y-1 custom-scrollbar bg-black/10 shrink-0">
-          {(conversations as Conversation[]).map(conv => (
-            <button 
-              key={conv.id} 
-              onClick={() => handleSelectConversation(conv.id)} 
-              className={`w-full text-left px-3 py-2 rounded-sm transition-all duration-300 hover:scale-[1.02] hover:bg-white/5 ${activeId === conv.id ? 'bg-slate-800/60 text-cyan-400 border border-cyan-500/20 shadow-md' : 'text-slate-600 hover:text-slate-300 border border-transparent'}`}
-            >
-              <div className="text-[9px] font-bold truncate uppercase tracking-tight">{conv.title}</div>
-            </button>
-          ))}
+          {(conversations as Conversation[])
+            .filter(conv => {
+              if (!searchTerm) return true;
+              const searchLower = searchTerm.toLowerCase();
+              return conv.title.toLowerCase().includes(searchLower) ||
+                     conv.messages.some(msg => msg.content.toLowerCase().includes(searchLower));
+            })
+            .length === 0 && searchTerm ? (
+              <div className="text-[8px] text-slate-600 mono px-3 py-2 text-center">
+                No conversations found
+              </div>
+            ) : (
+              (conversations as Conversation[])
+                .filter(conv => {
+                  if (!searchTerm) return true;
+                  const searchLower = searchTerm.toLowerCase();
+                  return conv.title.toLowerCase().includes(searchLower) ||
+                         conv.messages.some(msg => msg.content.toLowerCase().includes(searchLower));
+                })
+                .map(conv => (
+                  <button 
+                    key={conv.id} 
+                    onClick={() => handleSelectConversation(conv.id)} 
+                    className={`w-full text-left px-3 py-2 rounded-sm transition-all duration-300 hover:scale-[1.02] hover:bg-white/5 ${activeId === conv.id ? 'bg-slate-800/60 text-cyan-400 border border-cyan-500/20 shadow-md' : 'text-slate-600 hover:text-slate-300 border border-transparent'}`}
+                  >
+                    <div className="text-[9px] font-bold truncate uppercase tracking-tight">{conv.title}</div>
+                  </button>
+                ))
+            )}
         </div>
 
         <div className="p-3 border-t border-slate-800 bg-[#0a0b10] pb-[env(safe-area-inset-bottom)] shrink-0">
