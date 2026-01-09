@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { Conversation, Persona, CustomPersona } from '../types';
 import { PERSONA_CONFIGS, PHILOSOPHY_TOPICS } from '../constants';
 
@@ -121,7 +121,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Topic Vector Selection Modal */}
       {isTopicModalOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-2 lg:p-4 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="bg-[#05060b] border border-cyan-500/30 w-full max-w-6xl h-full lg:h-[90vh] flex flex-col shadow-[0_0_100px_rgba(6,182,212,0.1)] rounded-sm overflow-hidden border-t-4 border-t-cyan-500">
@@ -141,7 +140,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-              {/* Category Sidebar - Independent Scroll */}
               <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-slate-800 bg-black/20 overflow-x-auto lg:overflow-y-auto custom-scrollbar shrink-0 flex lg:flex-col no-scrollbar">
                 {PHILOSOPHY_TOPICS.map((cat, idx) => (
                   <button 
@@ -154,7 +152,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 ))}
               </div>
 
-              {/* Topics Grid - Independent Scroll */}
               <div className="flex-1 p-4 lg:p-8 overflow-y-auto custom-scrollbar bg-black/10">
                 <div className="space-y-8 lg:space-y-12">
                   {PHILOSOPHY_TOPICS[selectedCategoryIdx].sections.map((sec) => (
@@ -181,7 +178,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              {/* Matrix Selection Panel - Fixed at bottom on mobile / sidebar on desktop */}
               <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-slate-800 bg-black/40 p-4 lg:p-6 flex flex-col space-y-6 shrink-0 bg-[#0a0b10] overflow-y-auto custom-scrollbar">
                 <div className="space-y-2">
                   <label className="text-[9px] lg:text-[10px] mono text-slate-500 uppercase tracking-widest font-bold block">Assigned_Matrix</label>
@@ -232,7 +228,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
-      {/* Neural Purge Confirmation Modal */}
       {pendingDelete && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-[#0a0b10] border border-red-500/50 p-6 lg:p-8 max-w-md w-full shadow-[0_0_60px_rgba(239,68,68,0.3)] rounded-sm border-t-4 border-t-red-600">
@@ -344,7 +339,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col bg-black/5">
           <div className="p-3 space-y-8">
-            {/* Custom Section */}
             <div>
               <div className="flex items-center justify-between px-2 mb-4">
                 <span className="text-[13px] mono text-amber-500 uppercase tracking-[0.5em] font-black w-full">CUSTOMISE</span>
@@ -386,7 +380,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
 
-            {/* Core Personas Section */}
             {(Object.entries(sortedPersonasByCategory) as [string, string[]][]).map(([category, personas]) => (
               <div key={category}>
                 <div className="flex items-center justify-between px-2 mb-4">
@@ -451,4 +444,4 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);

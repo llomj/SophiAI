@@ -1,7 +1,9 @@
-
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Persona, Message, Conversation, Concept, CustomPersona, Fallacy } from "../types";
 import { PERSONA_CONFIGS } from "../constants";
+import { MATRIX_DNA } from "../persona_forge/matrix_dna";
+import { TJUMP_DATA } from "../persona_forge/tjump";
+import { TJUMP_MIND_DATA } from "../persona_forge/TJump_mind";
 
 const UNIVERSAL_DEBATE_PROTOCOL = `
 [DEBATE_PROTOCOL_ACTIVE]
@@ -19,12 +21,20 @@ const EMOJI_DIRECTIVE = `
 - Integrate relevant emojis throughout your response to make the dialogue more engaging, visual, and expressive. Use them for emphasis and tone. ✨🧠🔥
 `;
 
+// Helper to get static DNA without burdening the React state
+const getPersonaDNA = (persona: string): string => {
+  if (persona === Persona.TJUMP) {
+    return `${TJUMP_DATA}\n\n[NEURAL_MIND_EXTENSION]:\n${TJUMP_MIND_DATA}`;
+  }
+  return MATRIX_DNA[persona] || "";
+};
+
 export const getPhilosophicalResponse = async (
   persona: string,
   history: Message[],
   userInput: string,
   contextNote?: string,
-  personaAugmentation?: string,
+  userModifiedAugmentation?: string, // Only what the user typed in the Forge
   userPrompt?: string,
   allConversations: Conversation[] = [],
   customPersonas: CustomPersona[] = [],
@@ -43,26 +53,19 @@ export const getPhilosophicalResponse = async (
         color: custom.color || "bg-slate-500/10 text-slate-400 border-slate-500/30",
         glow: "shadow-[0_0_15px_rgba(148,163,184,0.3)]",
         focus: [],
-        category: 'Modern' // Fallback
+        category: 'Modern'
       };
     }
   }
 
-  // Fallback if still not found
-  if (!personaConfig) {
-    personaConfig = PERSONA_CONFIGS[Persona.TJUMP];
-  }
+  if (!personaConfig) personaConfig = PERSONA_CONFIGS[Persona.TJUMP];
   
   let systemInstruction = personaConfig.instruction + "\n" + UNIVERSAL_DEBATE_PROTOCOL;
 
-  if (emojiMode) {
-    systemInstruction += "\n" + EMOJI_DIRECTIVE;
-  }
+  if (emojiMode) systemInstruction += "\n" + EMOJI_DIRECTIVE;
   
   if (userPrompt) {
-    systemInstruction += `\n\n[GLOBAL_USER_PROFILE_DIRECTIVE]:
-"${userPrompt}"
-(Always apply these behavioral rules to your output style.)`;
+    systemInstruction += `\n\n[GLOBAL_USER_PROFILE_DIRECTIVE]:\n"${userPrompt}"`;
   }
 
   const otherConversations = allConversations
@@ -71,20 +74,19 @@ export const getPhilosophicalResponse = async (
     .slice(0, 3);
 
   if (otherConversations.length > 0) {
-    systemInstruction += `\n\n[CROSS_MATRIX_NEURAL_RECALL]:
-The user has previously engaged in other philosophical matrices. Use this context to avoid repetition and provide a cohesive experience:
-${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_EXCHANGE: ${c.messages.slice(-2).map(m => m.content).join(" | ")}`).join("\n")}
-`;
+    systemInstruction += `\n\n[CROSS_MATRIX_NEURAL_RECALL]:\n${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_EXCHANGE: ${c.messages.slice(-2).map(m => m.content).join(" | ")}`).join("\n")}`;
   }
 
-  if (personaAugmentation) {
-    systemInstruction += `\n\n[AUGMENTED_PERSONA_DNA]:
-"${personaAugmentation}"`;
+  // Combine static DNA with user-modified logic from the Forge
+  const baseDNA = getPersonaDNA(persona);
+  const combinedDNA = userModifiedAugmentation ? `${baseDNA}\n\n[USER_OVERRIDE_LOGIC]:\n${userModifiedAugmentation}` : baseDNA;
+
+  if (combinedDNA) {
+    systemInstruction += `\n\n[AUGMENTED_PERSONA_DNA]:\n"${combinedDNA}"`;
   }
 
   if (contextNote) {
-    systemInstruction += `\n\n[SESSION_CONTEXT_INGESTION]:
-"${contextNote}"`;
+    systemInstruction += `\n\n[SESSION_CONTEXT_INGESTION]:\n"${contextNote}"`;
   }
 
   const contents = history.map(msg => ({
@@ -108,7 +110,6 @@ ${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_
     let rawText = response.text || "Neural connection timeout.";
     const contradictionDetected = rawText.includes("[LOGICAL_INCONSISTENCY]");
     
-    // Extract fallacies using regex
     const fallacyRegex = /\[FALLACY:\s*([^|\]]+)\s*\|\s*([^|\]]+)\s*\|\s*([^\]]+)\]/g;
     const fallacies: Fallacy[] = [];
     let match;
@@ -121,9 +122,7 @@ ${otherConversations.map(c => `- MATRIX: ${c.persona} | TOPIC: ${c.title} | KEY_
       });
     }
 
-    // Clean text by removing fallacy tags for UI
     const cleanedText = rawText.replace(fallacyRegex, "").trim();
-
     return { text: cleanedText, contradictionDetected, fallacies };
   } catch (error) {
     console.error("Gemini Error:", error);
@@ -167,17 +166,4 @@ export const extractConceptsFromText = async (conversationText: string, existing
     console.error("Extraction error:", error);
     return []; 
   }
-};
-
-export const generateThoughtExperiment = async (history: Message[]): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const context = history.map(m => m.content).join("\n").slice(-2000);
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Generate a mini thought experiment based on this context:\n\n${context}`,
-      config: { systemInstruction: "You are a creative philosopher." }
-    });
-    return response.text || "Contemplation failed.";
-  } catch (error) { return "Contemplation failed."; }
 };

@@ -1,4 +1,3 @@
-
 # SophiAI Project Mandate
 
 ## 🚨 URGENT: DATA INTEGRITY & SOURCE PROTOCOL
@@ -15,16 +14,16 @@ The list of reasoning matrices (philosophical personas) is the core DNA of Sophi
 - **NEVER** change the layout structure, grid definitions, sidebar width, or core component positioning unless specifically requested.
 - **CONSISTENCY**: Ensure all new features fit within the established cyber-philosophy aesthetic without disrupting the existing navigation flow.
 
+## 🛠️ OPTIMIZATION LOG (FAILURE TRACKING)
+- **FAILED [2024-05-24] - Attempt 1 (State Decoupling)**: Attempted to split UI state from Archive state. **Result**: Total freeze persists on mobile. The cause was identified as synchronous processing of the massive ~4MB DNA strings within the React render cycle and `useState` initializers.
+- **FAILED [2024-05-24] - Attempt 2 (Memoization)**: Memoizing the Sidebar did not prevent the main thread block during `JSON.stringify` cycles of the monolithic state.
+- **NEW STRATEGY [ACTIVE]**: **Delta-Patch Architecture**. The React state no longer contains static DNA. It only stores user "patches." Heavy data is kept in static constants and merged only at the service level (API call). Initialization is moved to an asynchronous `useEffect` to prevent UI lock.
+
 ## PERSISTENT FORGE REPOSITORIES
 1. **Persona Forge (`/persona_forge/`)**: Contains hardcoded philosophical DNA (e.g., TJump axioms).
 2. **Identity Forge (`/user_identity_forge/`)**: Stores the permanent `USER_PROMPT` behavioral directives.
 3. **Log Forge (`/user_log_forge/`)**: Houses permanent historical context and `USER_LOG` summaries.
 4. **Model Registry (`matrix_models.md`)**: The central index of all reasoning matrices.
-
-## PENDING TASKS & SYNC LOGS
-- **COMPLETED [2024-05-24]**: Integrated 26 new models across Scientific, Political, Economic, Biological, and Modern categories.
-- **COMPLETED [2024-05-24]**: Relocated Capitalism, Anarchism, and Libertarianism to the Economic category per user request.
-- **SYNC RULE**: The contents of `TJump_mind.ts` and `tjump.ts` must be concatenated during the `loadSophiData` process. This is currently handled in `utils/storage.ts`.
 
 ## RE-INSTALLATION PROCEDURE
 Whenever `utils/storage.ts` is modified, ensure the following imports are maintained:
@@ -32,12 +31,3 @@ Whenever `utils/storage.ts` is modified, ensure the following imports are mainta
 - `import { TJUMP_MIND_DATA } from '../persona_forge/TJump_mind';`
 - `import { USER_IDENTITY_DATA } from '../user_identity_forge/identity';`
 - `import { USER_LOG_DATA } from '../user_log_forge/logs';`
-
-## DIRECTORY STRUCTURE
-- `persona_forge/`: AI personality knowledge (TJump, etc).
-- `user_identity_forge/`: Static user persona definitions.
-- `user_log_forge/`: Persistent memory/historical logs.
-- `matrix_models.md`: The definitive list of philosophical matrices.
-- `services/`: API communication layers.
-- `utils/`: State management and storage logic.
-- `components/`: UI modules.
