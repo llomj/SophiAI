@@ -50,7 +50,7 @@ export const getPhilosophicalResponse = async (
 
   // Fallback if still not found
   if (!personaConfig) {
-    personaConfig = PERSONA_CONFIGS[Persona.STOIC];
+    personaConfig = PERSONA_CONFIGS[Persona.TJUMP];
   }
   
   let systemInstruction = personaConfig.instruction + "\n" + UNIVERSAL_DEBATE_PROTOCOL;

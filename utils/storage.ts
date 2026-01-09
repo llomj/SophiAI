@@ -57,7 +57,7 @@ export const loadSophiData = (): SophiData => {
     concepts: [],
     notes: [],
     currentConversationId: null,
-    activePersona: Persona.STOIC,
+    activePersona: Persona.TJUMP,
     activeContextNoteId: null,
     personaAugmentations: initialAugmentations,
     userPersonality: USER_LOG_DATA,

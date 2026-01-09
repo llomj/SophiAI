@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   
   const [copyLabel, setCopyLabel] = useState('COPY');
   const [syncLabel, setSyncLabel] = useState('SYNC');
@@ -171,7 +172,7 @@ const App: React.FC = () => {
       return { 
         ...prev, 
         customPersonas: prev.customPersonas.filter(p => p.id !== id),
-        activePersona: isCurrentlyActive ? Persona.STOIC : prev.activePersona 
+        activePersona: isCurrentlyActive ? Persona.TJUMP : prev.activePersona 
       };
     });
   };
@@ -236,12 +237,10 @@ const App: React.FC = () => {
     return (
       <div className="h-screen w-full bg-[#05060b] flex flex-col items-center justify-center space-y-8 overflow-hidden animate-in fade-in duration-1000">
         <div className="relative">
-          <div className="w-24 h-24 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_40px_rgba(6,182,212,0.2)]"></div>
+          <div className="w-32 h-32 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_50px_rgba(6,182,212,0.1)]"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center animate-pulse">
-              <svg className="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
+            <div className="w-20 h-20 bg-cyan-500/10 rounded-sm flex items-center justify-center">
+               <span className="text-3xl mono text-cyan-500 animate-pulse font-bold tracking-tighter">S_AI</span>
             </div>
           </div>
         </div>
@@ -249,25 +248,78 @@ const App: React.FC = () => {
           <h1 className="text-2xl mono font-bold text-slate-100 tracking-[0.6em] animate-pulse">SOPHIAI_INIT</h1>
           <div className="flex flex-col items-center">
             <span className="text-[10px] mono text-cyan-500/60 uppercase tracking-[0.3em] animate-bounce">Accessing reasoning matrix...</span>
-            <div className="mt-4 flex space-x-1">
-              {[0, 1, 2].map(i => (
-                <div key={i} className="w-1.5 h-1.5 bg-cyan-500/20 rounded-full" style={{ animation: `pulse 1s infinite ${i * 0.2}s` }}></div>
-              ))}
-            </div>
           </div>
         </div>
-        <style>{`
-          @keyframes pulse {
-            0%, 100% { opacity: 0.2; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); background-color: #06b6d4; }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
     <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden relative animate-in fade-in duration-700">
+      {/* Neural Handbook Modal */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-[#0a0b10] border border-cyan-500/30 p-6 lg:p-10 max-w-2xl w-full shadow-[0_0_60px_rgba(6,182,212,0.2)] rounded-sm overflow-y-auto max-h-[90vh] custom-scrollbar relative border-t-4 border-t-cyan-500">
+            <button onClick={() => setIsHelpOpen(false)} className="absolute top-6 right-6 text-slate-500 hover:text-white">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="flex items-center space-x-4 mb-8">
+              <div className="w-12 h-12 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center rounded-sm">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold mono text-slate-100 uppercase tracking-[0.3em]">Neural_Handbook</h2>
+                <p className="text-[10px] mono text-cyan-500/60 uppercase tracking-widest">Protocol: SYSTEM_NAVIGATION_V1</p>
+              </div>
+            </div>
+            
+            <div className="space-y-8">
+              <section className="space-y-2">
+                <h3 className="text-cyan-400 font-bold mono text-sm uppercase tracking-widest border-b border-cyan-500/20 pb-2">01_CHAT (TERMINAL)</h3>
+                <p className="text-xs lg:text-sm text-slate-400 leading-relaxed font-light serif italic">
+                  Engage in deep, dialectic reasoning. Switch between core intellectual influences—like <span className="text-cyan-300 font-bold">Hawking</span>, <span className="text-cyan-300 font-bold">Feynman</span>, or <span className="text-cyan-300 font-bold">Plato</span>—via the sidebar. The AI will challenge your logic, flag contradictions, and identify fallacies in real-time.
+                </p>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-amber-400 font-bold mono text-sm uppercase tracking-widest border-b border-amber-500/20 pb-2">02_FORGE (DNA_AUGMENTATION)</h3>
+                <p className="text-xs lg:text-sm text-slate-400 leading-relaxed font-light serif italic">
+                  Directly modify the behavioral logic of your current persona. Use this to inject specific transcripts, philosophical axioms, or unique reasoning constraints. It serves as a persistent "logic patch" that overrides the AI's standard thinking process.
+                </p>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-cyan-400 font-bold mono text-sm uppercase tracking-widest border-b border-cyan-500/20 pb-2">03_MAP (NEURAL_TOPOLOGY)</h3>
+                <p className="text-xs lg:text-sm text-slate-400 leading-relaxed font-light serif italic">
+                  A visual archive of your intellectual journey. SophiAI automatically extracts categorized philosophical nodes (Ethics, Metaphysics, Logic) from your dialogues and links them back to specific conversation logs for archival recall.
+                </p>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-cyan-400 font-bold mono text-sm uppercase tracking-widest border-b border-cyan-500/20 pb-2">04_NOTES (CONTEXT_VAULT)</h3>
+                <p className="text-xs lg:text-sm text-slate-400 leading-relaxed font-light serif italic">
+                  Manage "Data Fragments." These are modular knowledge snippets you can save and, more importantly, <span className="text-cyan-300 font-bold">INJECT</span> into the active session. Once injected, the AI treats the note as short-term context for its next reasoning turn.
+                </p>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-amber-400 font-bold mono text-sm uppercase tracking-widest border-b border-amber-500/20 pb-2">05_CUSTOMISE (MATRIX_ARCHITECT)</h3>
+                <p className="text-xs lg:text-sm text-slate-400 leading-relaxed font-light serif italic">
+                  Architect entirely new philosophers from scratch. Define their unique Identity Label, Bio, and System Directives. Once committed to the array, they appear in your sidebar as permanent reasoning matrices ready for dialogue.
+                </p>
+              </section>
+            </div>
+
+            <button 
+              onClick={() => setIsHelpOpen(false)}
+              className="mt-10 w-full py-4 bg-cyan-500 text-slate-950 font-bold mono text-xs uppercase tracking-[0.4em] hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+            >
+              CLOSE_HANDBOOK
+            </button>
+          </div>
+        </div>
+      )}
+
       <Sidebar 
         conversations={data.conversations}
         activeId={data.currentConversationId}
@@ -294,6 +346,7 @@ const App: React.FC = () => {
         onDeleteCustomPersona={deleteCustomPersona}
         emojiMode={data.emojiMode}
         onToggleEmojis={handleToggleEmojis}
+        onToggleHelp={() => setIsHelpOpen(true)}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative z-10 bg-[#05060b]">
