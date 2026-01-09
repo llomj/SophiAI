@@ -64,7 +64,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      });
     }
   }, [messages, isLoading]);
 
@@ -188,7 +193,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [activePersona, customPersonas]);
 
   return (
-    <div className="flex flex-col h-full bg-[#0d0f17] rounded-none lg:rounded-sm border-0 lg:border lg:border-slate-800 shadow-2xl relative overflow-hidden overflow-x-hidden">
+    <div className="flex flex-col h-full bg-[#0d0f17] rounded-none lg:rounded-sm border-0 lg:border lg:border-slate-800 shadow-2xl relative overflow-hidden overflow-x-hidden" style={{ maxWidth: '100%', width: '100%', overflowX: 'hidden' }}>
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#2dd4bf 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }}></div>
 
       {activeFallacies && (
@@ -244,7 +249,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:space-y-6 z-10 custom-scrollbar pb-32 lg:pb-6">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 space-y-4 lg:space-y-6 z-10 custom-scrollbar" style={{ maxWidth: '100%', overflowX: 'hidden', paddingBottom: '120px', scrollPaddingBottom: '120px' }}>
         {messages.map((msg) => {
           const isAIVoiceLoading = isTtsLoading === msg.id;
           const isAIVoiceSpeaking = speakingMsgId === msg.id;
@@ -252,7 +257,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           const hasInconsistency = msg.metadata?.contradictionDetected;
 
           return (
-            <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={msg.id} className="flex w-full justify-start">
               <div className={`max-w-[95%] lg:max-w-[85%] px-4 py-3 border relative transition-all duration-500 ${
                 msg.role === 'user' 
                   ? 'bg-slate-900/80 text-cyan-50 border-cyan-500/20 rounded-sm rounded-tr-none' 
@@ -313,9 +318,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
       </div>
 
-      <div className="fixed lg:relative bottom-0 left-0 right-0 lg:bottom-auto px-4 pt-3 border-t border-slate-800 bg-[#0a0b10]/95 backdrop-blur-xl z-50 pb-[calc(1rem+env(safe-area-inset-bottom))] w-full overflow-x-hidden">
-        <div className="relative flex items-end space-x-2 max-w-5xl mx-auto w-full">
-          <div className="relative flex-1 min-w-0 w-full">
+      <div className="fixed lg:relative bottom-0 left-0 right-0 lg:bottom-auto pt-3 border-t border-slate-800 bg-[#0a0b10]/95 backdrop-blur-xl z-50 overflow-x-hidden" style={{ width: '100%', maxWidth: '100%', left: 0, right: 0, paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))', position: 'fixed', bottom: 0 }}>
+        <div className="flex items-end gap-2 px-4 w-full" style={{ maxWidth: '100%', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+          <div className="flex-1 min-w-0 relative" style={{ flex: '1 1 0%', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -323,29 +328,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               disabled={isLoading}
               rows={Math.min(4, input.split('\n').length || 1)}
               placeholder={isListening ? "LISTENING..." : "SEND_INPUT..."}
-              className={`w-full min-w-0 pl-4 pr-20 lg:pr-24 py-3 bg-[#05060b] border rounded-sm focus:outline-none transition-all text-sm mono text-slate-200 resize-none whitespace-pre-wrap leading-relaxed custom-scrollbar ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-slate-800 focus:border-cyan-500/50'}`}
-              style={{ maxWidth: '100%', boxSizing: 'border-box' }}
+              className={`w-full min-w-0 pl-4 pr-10 py-3 bg-[#05060b] border rounded-sm focus:outline-none text-sm mono text-slate-200 resize-none whitespace-pre-wrap leading-relaxed custom-scrollbar ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-slate-800 focus:border-cyan-500/50'}`}
+              style={{ maxWidth: '100%', boxSizing: 'border-box', width: '100%', overflowX: 'hidden', wordWrap: 'break-word', overflowWrap: 'break-word' }}
             />
-            <div className="absolute right-10 lg:right-12 bottom-2.5 flex items-center">
+            <div className="absolute right-2 bottom-2.5 flex items-center pointer-events-none">
               <button
                 type="button"
                 onClick={toggleListening}
-                className={`p-1.5 lg:p-2 transition-all flex items-center justify-center rounded-full shrink-0 ${isListening ? 'text-cyan-400 bg-cyan-500/10 scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`p-1.5 transition-all flex items-center justify-center rounded-full shrink-0 pointer-events-auto ${isListening ? 'text-cyan-400 bg-cyan-500/10 scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'text-slate-500 hover:text-slate-300'}`}
                 title="Dictation"
               >
-                <svg className={`w-4 h-4 lg:w-5 lg:h-5 ${isListening ? 'animate-pulse' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-              </button>
-            </div>
-            <div className="absolute right-1.5 lg:right-2 bottom-2">
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || isLoading}
-                className="p-2 lg:p-2.5 bg-cyan-500 text-slate-950 hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] rounded-sm shrink-0"
-              >
-                <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+                <svg className={`w-4 h-4 ${isListening ? 'animate-pulse' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
               </button>
             </div>
           </div>
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || isLoading}
+            className="bg-cyan-500 text-slate-950 hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] rounded-sm flex items-center justify-center"
+            style={{ width: '44px', minWidth: '44px', maxWidth: '44px', height: '44px', flexShrink: 0, flexGrow: 0 }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+          </button>
         </div>
       </div>
     </div>

@@ -181,7 +181,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden relative font-sans touch-none lg:touch-auto">
+    <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden overflow-x-hidden relative font-sans touch-none lg:touch-auto" style={{ maxWidth: '100%', width: '100%', height: '100vh', height: '-webkit-fill-available', overflowX: 'hidden', position: 'fixed', left: 0, right: 0, top: 0 }}>
       {isHelpOpen && (
         <div className="fixed inset-0 z-[150] bg-black/95 p-6 flex items-center justify-center animate-in fade-in" onClick={() => setIsHelpOpen(false)}>
            <div className="max-w-md bg-[#0a0b10] border border-cyan-500/20 p-8 space-y-4">
@@ -216,7 +216,7 @@ const App: React.FC = () => {
 
       <main className="flex-1 flex flex-col min-w-0 h-full bg-[#05060b] overflow-x-hidden">
         <header className="pt-[env(safe-area-inset-top)] border-b border-slate-800 bg-[#0a0b10]/90 z-40 shrink-0">
-          <div className="h-14 px-4 flex items-center overflow-x-auto no-scrollbar space-x-2">
+          <div className="h-14 px-4 flex items-center overflow-x-hidden no-scrollbar space-x-2 flex-wrap" style={{ maxWidth: '100%', width: '100%' }}>
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-cyan-500 shrink-0">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>

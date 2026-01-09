@@ -141,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-              <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-slate-800 bg-black/20 overflow-x-auto lg:overflow-y-auto custom-scrollbar shrink-0 flex lg:flex-col no-scrollbar">
+              <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-slate-800 bg-black/20 overflow-x-hidden lg:overflow-y-auto custom-scrollbar shrink-0 flex lg:flex-col no-scrollbar" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                 {PHILOSOPHY_TOPICS.map((cat, idx) => (
                   <button 
                     key={cat.name} 
