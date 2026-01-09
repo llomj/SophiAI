@@ -45,7 +45,23 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webmanifest}'],
           navigateFallback: '/SophiAI/index.html',
-          navigateFallbackAllowlist: [/^\/SophiAI\//]
+          navigateFallbackAllowlist: [/^\/SophiAI\//, /^\/SophiAI$/],
+          cleanupOutdatedCaches: true,
+          skipWaiting: true,
+          clientsClaim: true,
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/cdn\./,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'cdn-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                }
+              }
+            }
+          ]
         }
       })
     ],
