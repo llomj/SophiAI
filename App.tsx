@@ -214,7 +214,7 @@ const App: React.FC = () => {
         onLaunchDialectic={(t, p) => { setActivePersona(p); setCurrentConversationId(null); setActiveTab('chat'); }}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 h-full bg-[#05060b]">
+      <main className="flex-1 flex flex-col min-w-0 h-full bg-[#05060b] overflow-x-hidden">
         <header className="pt-[env(safe-area-inset-top)] border-b border-slate-800 bg-[#0a0b10]/90 z-40 shrink-0">
           <div className="h-14 px-4 flex items-center overflow-x-auto no-scrollbar space-x-2">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-cyan-500 shrink-0">
@@ -228,7 +228,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 relative overflow-hidden">
+        <div className="flex-1 relative overflow-hidden overflow-x-hidden">
           {activeTab === 'chat' && (
             <ChatWindow 
               messages={activeConversation?.messages || []}
