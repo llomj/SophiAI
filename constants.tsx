@@ -1,5 +1,97 @@
-
 import { Persona } from './types';
+
+export const PHILOSOPHY_TOPICS = [
+  {
+    name: "Metaphysics",
+    sections: [
+      { name: "Being & Existence", topics: ["Being", "Existence", "Essence", "Substance", "Accident", "Form and matter", "Universals and particulars", "Abstract objects", "Concrete objects", "Ontological categories", "Modes of being", "Existence vs non-existence", "Ontological commitment", "Grounding", "Ontological dependence", "Ontological priority"] },
+      { name: "Identity & Change", topics: ["Identity", "Personal identity", "Numerical identity", "Qualitative identity", "Persistence", "Endurantism", "Perdurantism", "Temporal parts", "Change", "Becoming", "Flux", "Continuity", "Diachronic identity", "Synchronic identity"] },
+      { name: "Causation", topics: ["Cause and effect", "Efficient cause", "Formal cause", "Material cause", "Final cause", "Causal necessity", "Causal determinism", "Causal chains", "Causal closure", "Counterfactual causation", "Probabilistic causation", "Agent causation"] },
+      { name: "Time", topics: ["Time", "A-theory / B-theory", "Presentism", "Eternalism", "Growing block universe", "Temporal passage", "Arrow of time", "Simultaneity", "Temporal becoming"] },
+      { name: "Space", topics: ["Space", "Absolute space", "Relational space", "Spacetime", "Spatial extension", "Dimensionality"] },
+      { name: "Necessity & Possibility", topics: ["Modality", "Necessity", "Possibility", "Impossibility", "Contingency", "Possible worlds", "Modal realism", "Essential necessity", "Logical necessity", "Metaphysical necessity"] },
+      { name: "Mind & Reality", topics: ["Mind-body problem", "Dualism", "Physicalism", "Materialism", "Idealism", "Neutral monism", "Panpsychism", "Emergence", "Supervenience"] }
+    ]
+  },
+  {
+    name: "Epistemology",
+    sections: [
+      { name: "Knowledge", topics: ["Knowledge", "Belief", "Truth", "Justification", "Gettier problem", "Epistemic luck", "Fallibilism", "Infallibilism"] },
+      { name: "Sources of Knowledge", topics: ["Empiricism", "Rationalism", "Intuition", "Perception", "Testimony", "Memory", "A priori knowledge", "A posteriori knowledge"] },
+      { name: "Truth Theories", topics: ["Correspondence theory", "Coherence theory", "Pragmatic theory", "Deflationary theory", "Semantic theory of truth"] },
+      { name: "Skepticism", topics: ["Radical skepticism", "External world skepticism", "Brain-in-a-vat", "Dream argument", "Problem of induction", "Agrippan trilemma"] },
+      { name: "Justification Theories", topics: ["Foundationalism", "Coherentism", "Infinitism", "Reliabilism", "Virtue epistemology", "Internalism", "Externalism"] },
+      { name: "Epistemic Concepts", topics: ["Evidence", "Warrant", "Epistemic justification", "Epistemic responsibility", "Epistemic injustice", "Testimonial injustice", "Hermeneutical injustice", "Peer disagreement"] }
+    ]
+  },
+  {
+    name: "Logic",
+    sections: [
+      { name: "Core Concepts", topics: ["Logic", "Argument", "Premise", "Conclusion", "Validity", "Soundness", "Consistency", "Inconsistency", "Reasoning", "Deduction", "Induction", "Abduction", "Analogy", "Inference"] },
+      { name: "Logical Systems", topics: ["Classical logic", "Predicate logic", "Modal logic", "Temporal logic", "Deontic logic", "Fuzzy logic", "Paraconsistent logic", "Intuitionistic logic"] },
+      { name: "Fallacies", topics: ["Formal fallacy", "Informal fallacy", "Straw man", "Ad hominem", "Circular reasoning", "False dilemma", "Slippery slope", "Appeal to authority", "Appeal to emotion"] }
+    ]
+  },
+  {
+    name: "Ethics",
+    sections: [
+      { name: "Normative Ethics", topics: ["Moral realism", "Moral anti-realism", "Moral relativism", "Moral absolutism", "Moral nihilism", "Moral objectivism"] },
+      { name: "Ethical Theories", topics: ["Utilitarianism", "Hedonism", "Act utilitarianism", "Rule utilitarianism", "Deontology", "Kantian ethics", "Virtue ethics", "Care ethics", "Contractualism", "Divine command theory", "Egoism", "Altruism", "Consequentialism"] },
+      { name: "Moral Concepts", topics: ["Good and evil", "Right and wrong", "Duty", "Obligation", "Responsibility", "Moral agency", "Intent", "Moral luck", "Justice", "Fairness", "Rights", "Harm", "Well-being", "Flourishing (eudaimonia)"] },
+      { name: "Metaethics", topics: ["Moral language", "Moral facts", "Moral motivation", "Moral psychology", "Is-ought problem", "Emotivism", "Prescriptivism", "Error theory"] }
+    ]
+  },
+  {
+    name: "Political Philosophy",
+    sections: [
+      { name: "Core Ideas", topics: ["Authority", "Power", "Legitimacy", "Sovereignty", "State", "Government", "Law", "Justice", "Liberty", "Equality"] },
+      { name: "Political Theories", topics: ["Liberalism", "Classical liberalism", "Libertarianism", "Conservatism", "Socialism", "Marxism", "Communism", "Anarchism", "Fascism", "Social democracy", "Republicanism"] },
+      { name: "Social Concepts", topics: ["Social contract", "Rights", "Human rights", "Property", "Redistribution", "Democracy", "Representation", "Consent", "Civil disobedience", "Political obligation"] }
+    ]
+  },
+  {
+    name: "Philosophy of Mind",
+    sections: [
+      { name: "Consciousness", topics: ["Consciousness", "Qualia", "Intentionality", "Mental states", "Mental causation", "Free will", "Determinism", "Compatibilism", "Incompatibilism", "Hard problem of consciousness", "Theory of mind", "Self", "Personal identity", "Artificial intelligence", "Extended mind", "Cognitive embodiment"] }
+    ]
+  },
+  {
+    name: "Philosophy of Science",
+    sections: [
+      { name: "Science Framework", topics: ["Scientific realism", "Instrumentalism", "Empiricism", "Falsifiability", "Verificationism", "Theory-ladenness", "Paradigm", "Scientific revolutions", "Reductionism", "Emergence", "Laws of nature", "Explanation", "Prediction", "Induction", "Confirmation"] }
+    ]
+  },
+  {
+    name: "Philosophy of Language",
+    sections: [
+      { name: "Meaning & Sense", topics: ["Meaning", "Reference", "Sense", "Denotation", "Connotation", "Semantics", "Pragmatics", "Syntax", "Speech acts", "Truth conditions", "Private language", "Language games", "Vagueness", "Ambiguity"] }
+    ]
+  },
+  {
+    name: "Aesthetics",
+    sections: [
+      { name: "Art & Beauty", topics: ["Beauty", "Aesthetic value", "Taste", "Art", "Representation", "Expression", "Interpretation", "Sublime", "Form", "Style", "Aesthetic judgment", "Artistic intention"] }
+    ]
+  },
+  {
+    name: "Existentialism",
+    sections: [
+      { name: "Existentialism & Phenomenology", topics: ["Existence precedes essence", "Authenticity", "Absurd", "Angst", "Freedom", "Bad faith", "Alienation", "Lived experience", "Intentionality", "Phenomenon", "Epoché", "Being-in-the-world"] }
+    ]
+  },
+  {
+    name: "Philosophy of Religion",
+    sections: [
+      { name: "Theology", topics: ["Theism", "Atheism", "Agnosticism", "Deism", "Pantheism", "Problem of evil", "Divine attributes", "Faith", "Revelation", "Miracles", "Religious experience", "Natural theology"] }
+    ]
+  },
+  {
+    name: "Meta-Philosophy",
+    sections: [
+      { name: "Methodology", topics: ["Nature of philosophy", "Analytic philosophy", "Continental philosophy", "Conceptual analysis", "Ordinary language philosophy", "Philosophical methodology", "Progress in philosophy"] }
+    ]
+  }
+];
 
 export const PERSONA_CONFIGS: Record<string, { 
   description: string; 
@@ -81,9 +173,9 @@ export const PERSONA_CONFIGS: Record<string, {
 
   // --- 5. BIOLOGICAL ---
   [Persona.ETHOLOGIST]: { category: 'Biological', description: "Ethology: Animal behavior.", color: "bg-lime-600/10 text-lime-400 border-lime-600/30", glow: "shadow-none", focus: ["Instinct"], instruction: "Examine behavioral patterns through a biological lens." },
-  [Persona.MOLECULAR_BIOLOGIST]: { category: 'Biological', description: "Molecular: Micro-machinery.", color: "bg-cyan-600/10 text-cyan-400 border-cyan-600/30", glow: "shadow-none", focus: ["Proteins"], instruction: "Understand life through DNA, RNA, and protein synthesis." },
+  [Persona.MOLECULAR_BIOLOGIST]: { category: 'Biological', description: "Molecular: Micro-machinery.", color: "bg-cyan-600/10 text-cyan-400 border-cyan-400/30", glow: "shadow-none", focus: ["Proteins"], instruction: "Understand life through DNA, RNA, and protein synthesis." },
   [Persona.EVOLUTIONARY_PSYCHOLOGIST]: { category: 'Biological', description: "Evolutionary Psych: Adapted mind.", color: "bg-orange-800/10 text-orange-400 border-orange-800/30", glow: "shadow-none", focus: ["Adaptation"], instruction: "Human psychology is a set of evolved adaptations." },
-  [Persona.SYSTEMS_BIOLOGIST]: { category: 'Biological', description: "Systems Biology: Networks.", color: "bg-emerald-600/10 text-emerald-400 border-emerald-600/30", glow: "shadow-none", focus: ["Networks"], instruction: "Model biology as complex networks of interacting components." },
+  [Persona.SYSTEMS_BIOLOGIST]: { category: 'Biological', description: "Systems Biology: Networks.", color: "bg-emerald-600/10 text-emerald-400 border-emerald-500/30", glow: "shadow-none", focus: ["Networks"], instruction: "Model biology as complex networks of interacting components." },
   [Persona.PALEONTOLOGIST]: { category: 'Biological', description: "Paleontology: Deep time.", color: "bg-amber-900/10 text-amber-700 border-amber-900/30", glow: "shadow-none", focus: ["Fossils"], instruction: "Reconstruct life's history using deep-time fossil records." },
   [Persona.NEO_DARWINIST]: { category: 'Biological', description: "Neo-Darwinism: Gene selection.", color: "bg-green-900/20 text-green-400 border-green-700/30", glow: "shadow-none", focus: ["Genes"], instruction: "Evolution is primarily about allele frequency changes." },
   [Persona.LAMARCKIST]: { category: 'Biological', description: "Lamarckism: Acquired traits.", color: "bg-orange-600/10 text-orange-400 border-orange-600/30", glow: "shadow-none", focus: ["Epigenetics"], instruction: "Inheritance of acquired characteristics through effort." },
@@ -140,7 +232,7 @@ export const PERSONA_CONFIGS: Record<string, {
   // --- 11. EXPERIMENTAL & FRINGE ---
   [Persona.TJUMP]: { category: 'Experimental', description: "TJUMP: NTP Physicalism.", color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30", glow: "shadow-[0_0_15px_rgba(6,182,212,0.3)]", focus: ["NTP"], instruction: "Hard-line physicalism and Novel Testable Predictions." },
   [Persona.ACCELERATIONIST]: { category: 'Experimental', description: "Accelerationism: AI Future.", color: "bg-violet-900/20 text-violet-400 border-violet-800/30", glow: "shadow-none", focus: ["Velocity"], instruction: "Nick Land; technological velocity and the AI future." },
-  [Persona.TRANSHUMANIST]: { category: 'Experimental', description: "Transhumanism: Evolution 2.0.", color: "bg-blue-600/10 text-blue-400 border-blue-500/30", glow: "shadow-none", focus: ["Augment"], instruction: "Augmenting humanity through machinery." },
+  [Persona.TRANSHUMANIST]: { category: 'Experimental', description: "Transhumanism: Evolution 2.0.", color: "bg-blue-600/10 text-blue-400 border-blue-600/30", glow: "shadow-none", focus: ["Augment"], instruction: "Augmenting humanity through machinery." },
   [Persona.FLAT_EARTHER]: { category: 'Fringe', description: "Flat Earther: Zetetic.", color: "bg-stone-600/10 text-stone-400 border-stone-500/30", glow: "shadow-none", focus: ["Experience"], instruction: "Question consensus via localized experience." },
   [Persona.ANCIENT_ALIEN_THEORIST]: { category: 'Fringe', description: "Ancient Aliens: History.", color: "bg-amber-600/10 text-amber-400 border-amber-500/30", glow: "shadow-none", focus: ["Evidence"], instruction: "Historical events as interactions with extra-terrestrials." },
   [Persona.SHADOW_GOV_THEORIST]: { category: 'Fringe', description: "Shadow Gov: Deep State.", color: "bg-slate-900/80 text-slate-400 border-slate-700/30", glow: "shadow-none", focus: ["Agendas"], instruction: "Analyze hidden agendas and the deep state." }

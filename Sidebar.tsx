@@ -127,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="bg-[#05060b] border border-cyan-500/30 w-full max-w-6xl h-full lg:h-[90vh] flex flex-col shadow-[0_0_100px_rgba(6,182,212,0.1)] rounded-sm overflow-hidden border-t-4 border-t-cyan-500">
             <div className="p-4 lg:p-6 border-b border-slate-800 flex justify-between items-center bg-black/40 shrink-0">
               <div className="flex items-center space-x-4">
-                <div className="w-8 h-8 lg:w-10 lg:h-10 border border-cyan-500/40 bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 border border-cyan-500/40 bg-cyan-500/10 text-cyan-400 flex items-center justify-center rounded-sm">
                   <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                 </div>
                 <div>
@@ -141,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-              {/* Category Sidebar - Mobile Horizontal / Desktop Vertical */}
+              {/* Category Sidebar - Independent Scroll */}
               <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-slate-800 bg-black/20 overflow-x-auto lg:overflow-y-auto custom-scrollbar shrink-0 flex lg:flex-col no-scrollbar">
                 {PHILOSOPHY_TOPICS.map((cat, idx) => (
                   <button 
@@ -154,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 ))}
               </div>
 
-              {/* Topics Grid */}
+              {/* Topics Grid - Independent Scroll */}
               <div className="flex-1 p-4 lg:p-8 overflow-y-auto custom-scrollbar bg-black/10">
                 <div className="space-y-8 lg:space-y-12">
                   {PHILOSOPHY_TOPICS[selectedCategoryIdx].sections.map((sec) => (
@@ -181,8 +181,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              {/* Matrix Selection Panel */}
-              <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-slate-800 bg-black/40 p-4 lg:p-6 flex flex-col space-y-6 shrink-0 bg-[#0a0b10]">
+              {/* Matrix Selection Panel - Fixed at bottom on mobile / sidebar on desktop */}
+              <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-slate-800 bg-black/40 p-4 lg:p-6 flex flex-col space-y-6 shrink-0 bg-[#0a0b10] overflow-y-auto custom-scrollbar">
                 <div className="space-y-2">
                   <label className="text-[9px] lg:text-[10px] mono text-slate-500 uppercase tracking-widest font-bold block">Assigned_Matrix</label>
                   <div className="relative">

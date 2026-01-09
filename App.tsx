@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Persona, Conversation, Message, SophiData, Note, Concept, CustomPersona } from './types';
 import { loadSophiData, saveSophiData, exportToCSV } from './utils/storage';
@@ -142,6 +141,33 @@ const App: React.FC = () => {
         });
       }
     }, 1000);
+  };
+
+  const handleLaunchDialectic = (topic: string, persona: string) => {
+    const id = crypto.randomUUID();
+    const starterText = `I would like to engage in a dialectic specifically regarding the subject of [${topic.toUpperCase()}]. From your perspective, what are the primary logical tensions or fundamental axioms that define this domain?`;
+    
+    const newConv: Conversation = {
+      id,
+      title: `VECTOR: ${topic.toUpperCase()}`,
+      messages: [],
+      tags: [topic],
+      persona: persona,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    setData(prev => ({
+      ...prev,
+      activePersona: persona,
+      currentConversationId: id,
+      conversations: [newConv, ...prev.conversations]
+    }));
+
+    setActiveTab('chat');
+    
+    // Automatically trigger the first message from user to philosopher
+    setTimeout(() => handleSendMessage(starterText), 300);
   };
 
   const addCustomPersona = () => {
@@ -347,6 +373,7 @@ const App: React.FC = () => {
         emojiMode={data.emojiMode}
         onToggleEmojis={handleToggleEmojis}
         onToggleHelp={() => setIsHelpOpen(true)}
+        onLaunchDialectic={handleLaunchDialectic}
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full relative z-10 bg-[#05060b]">
@@ -476,7 +503,7 @@ const App: React.FC = () => {
               <div className={`flex-1 flex flex-col w-full max-w-6xl mx-auto bg-[#0a0b10] border rounded-sm overflow-hidden transition-all ${activeTab === 'forge' ? 'border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.1)]' : 'border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.1)]'}`}>
                 <div className="bg-black/40 border-b border-slate-800 p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                   <div className="flex items-center space-x-4 min-w-0">
-                    <div className={`w-9 h-9 lg:w-11 lg:h-11 border flex items-center justify-center rounded-sm shrink-0 ${activeTab === 'forge' ? 'border-amber-500/40 bg-amber-500/10 text-amber-500' : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-500'}`}>
+                    <div className={`w-9 h-9 lg:w-11 lg:h-11 border flex items-center justify-center rounded-sm shrink-0 ${activeTab === 'forge' ? 'border-amber-500/40 bg-amber-500/10 text-amber-500' : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-400'}`}>
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={activeTab === 'forge' ? "M13 10V3L4 14h7v7l9-11h-7z" : "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"} /></svg>
                     </div>
                     <div className="min-w-0 flex-1">
