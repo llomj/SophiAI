@@ -77,17 +77,26 @@ const Sidebar: React.FC<SidebarProps> = ({
     const categories: Record<string, string[]> = {};
     const allPersonas = Object.keys(PERSONA_CONFIGS);
     
-    const filteredPersonas = allPersonas.filter(p => 
-      p.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      PERSONA_CONFIGS[p].description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter personas by search term (case-insensitive)
+    const searchLower = searchTerm.toLowerCase().trim();
+    const filteredPersonas = searchLower === '' 
+      ? allPersonas
+      : allPersonas.filter(p => {
+          const personaName = p.toLowerCase();
+          const description = PERSONA_CONFIGS[p]?.description?.toLowerCase() || '';
+          return personaName.includes(searchLower) || description.includes(searchLower);
+        });
 
+    // Group filtered personas by category
     filteredPersonas.forEach(p => {
-      const cat = PERSONA_CONFIGS[p].category;
+      const config = PERSONA_CONFIGS[p];
+      if (!config) return;
+      const cat = config.category;
       if (!categories[cat]) categories[cat] = [];
       categories[cat].push(p);
     });
 
+    // Sort categories and personas within categories
     const sortedResult: Record<string, string[]> = {};
     Object.keys(categories).sort().forEach(cat => {
       sortedResult[cat] = categories[cat].sort();
@@ -402,14 +411,21 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
 
-            {Object.keys(sortedPersonasByCategory).length === 0 && searchTerm ? (
+            {Object.keys(sortedPersonasByCategory).length === 0 && searchTerm.trim() ? (
               <div className="text-[8px] text-slate-600 mono px-2 py-4 text-center">
                 No matrices found for "{searchTerm}"
               </div>
             ) : (
               (Object.entries(sortedPersonasByCategory) as [string, string[]][]).map(([category, personas]) => {
-                const isExpanded = expandedCategories.has(category) || searchTerm.length > 0;
+                // Auto-expand categories when searching, or if manually expanded
+                const hasSearchTerm = searchTerm.trim().length > 0;
+                const isExpanded = expandedCategories.has(category) || hasSearchTerm;
                 const categoryDisplayName = category === 'Influences' ? 'INTELLECTUAL INFLUENCES' : category.toUpperCase();
+                
+                // Don't show category if it has no personas and we're searching
+                if (hasSearchTerm && personas.length === 0) {
+                  return null;
+                }
                 
                 return (
                   <div key={category} className="mb-4">
@@ -429,31 +445,26 @@ const Sidebar: React.FC<SidebarProps> = ({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
-                    {isExpanded && (
+                    {isExpanded && personas.length > 0 && (
                       <div className="grid grid-cols-1 gap-2 px-1 animate-in slide-in-from-top-2 duration-200">
-                        {personas.length === 0 ? (
-                          <div className="text-[8px] text-slate-600 mono px-3 py-2 text-center">
-                            No matrices in this category
-                          </div>
-                        ) : (
-                          personas.map(p => {
-                            const config = PERSONA_CONFIGS[p];
-                            const isActive = activePersona === p;
-                            return (
-                              <button 
-                                key={p} 
-                                onClick={() => handlePersonaSelect(p)} 
-                                className={`w-full text-left px-3 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm truncate ${
-                                  isActive 
-                                    ? `${config.color} ${config.glow} border-current ring-1 ring-current/20 z-10 font-bold` 
-                                    : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-xl'
-                                }`}
-                              >
-                                {p.toUpperCase()}
-                              </button>
-                            );
-                          })
-                        )}
+                        {personas.map(p => {
+                          const config = PERSONA_CONFIGS[p];
+                          if (!config) return null;
+                          const isActive = activePersona === p;
+                          return (
+                            <button 
+                              key={p} 
+                              onClick={() => handlePersonaSelect(p)} 
+                              className={`w-full text-left px-3 py-2.5 rounded-sm text-[9px] mono border transition-all duration-300 transform hover:scale-[1.03] hover:translate-x-1 backdrop-blur-sm truncate ${
+                                isActive 
+                                  ? `${config.color} ${config.glow} border-current ring-1 ring-current/20 z-10 font-bold` 
+                                  : 'border-slate-800/40 bg-white/5 text-slate-500 hover:text-slate-100 hover:bg-white/10 hover:border-white/20 hover:shadow-xl'
+                              }`}
+                            >
+                              {p.toUpperCase()}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
