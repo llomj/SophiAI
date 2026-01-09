@@ -6,7 +6,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => {
   // Load env files - Vite automatically loads .env, .env.local, .env.[mode], .env.[mode].local
   const env = loadEnv(mode, process.cwd(), '');
-  const apiKey = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || '';
+  // Fallback to hardcoded key for production builds (temporary - should use GitHub Secrets)
+  const apiKey = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || 'AIzaSyCDaBAfP2zefxS4x5JkEu6UbS5Koq3N4HE';
   
   if (!apiKey) {
     console.warn('\n⚠️  ⚠️  ⚠️  WARNING: GEMINI_API_KEY not found! ⚠️  ⚠️  ⚠️');
