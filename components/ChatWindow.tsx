@@ -232,17 +232,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       )}
 
-      <div className="px-4 lg:px-6 py-3 border-b border-slate-800 flex flex-col space-y-2 bg-black/40 backdrop-blur-md z-50">
+      <div className="px-4 lg:px-6 py-4 border-b border-slate-800 flex flex-col space-y-2 bg-black/40 backdrop-blur-md z-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
-            <button onClick={onToggleSidebar} className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-cyan-400 transition-colors shrink-0">
-              <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
-            </button>
             <div className="flex items-center space-x-2 min-w-0 flex-1">
-              <div className={`w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full animate-pulse shrink-0 ${resolvedPersona.color.split(' ')[1]}`}></div>
+              <div className={`w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full animate-pulse shrink-0 ${resolvedPersona.color.split(' ')[1]}`}></div>
               <div className="min-w-0 flex-1">
-                <h2 className="font-bold text-slate-100 text-[10px] lg:text-sm mono tracking-tighter whitespace-normal break-words uppercase truncate">{resolvedPersona.description}</h2>
-                <p className="text-[8px] lg:text-[9px] text-slate-500 mono uppercase tracking-widest truncate">Matrix: <span className={resolvedPersona.color.split(' ')[1]}>{activePersona}</span></p>
+                <h2 className="font-bold text-slate-100 text-lg lg:text-xl mono tracking-tight whitespace-normal break-words uppercase">{activePersona}</h2>
               </div>
             </div>
           </div>

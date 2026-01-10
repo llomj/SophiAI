@@ -69,10 +69,44 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, conversations, onCo
         </div>
       </div>
 
-      {/* Main Map View - Scrollable Card Grid */}
+      {/* Main Map View - NotebookLM-style Chat Mapping */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 bg-[#05060b]">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {concepts.map(concept => (
+        {/* Show conversations as primary nodes in map view */}
+        <div className="mb-6">
+          <h3 className="mono text-sm font-bold text-cyan-400 uppercase tracking-wider mb-4">CONVERSATION MAP</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {conversations.map(conv => (
+              <div
+                key={conv.id}
+                onClick={() => onResumeConversation?.(conv.id)}
+                className="p-5 rounded-sm border cursor-pointer transition-all duration-300 relative group bg-[#0a0b10] border-slate-800 hover:border-cyan-500/50 hover:bg-[#0e101a] hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]"
+              >
+                <div className="mb-2">
+                  <span className="text-[8px] mono font-bold uppercase tracking-widest text-slate-600 mb-1 block">CHAT_NODE</span>
+                  <h4 className="text-base font-bold mono uppercase tracking-tight text-slate-200 group-hover:text-cyan-400">
+                    {conv.title}
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-500 mono mb-3 line-clamp-2">
+                  {conv.messages.length} messages • {new Date(conv.updatedAt).toLocaleDateString()}
+                </p>
+                <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                  <span className="text-[9px] mono text-cyan-500/70 uppercase">{conv.persona}</span>
+                  <svg className="w-4 h-4 text-slate-600 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Concepts section */}
+        {concepts.length > 0 && (
+          <div>
+            <h3 className="mono text-sm font-bold text-cyan-400 uppercase tracking-wider mb-4">CONCEPT_NODES</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {concepts.map(concept => (
             <div
               key={concept.id}
               onClick={() => {
@@ -117,8 +151,10 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, conversations, onCo
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Details Panel - Connections and Full Context */}
