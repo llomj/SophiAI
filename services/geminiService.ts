@@ -23,7 +23,7 @@ const EMOJI_DIRECTIVE = `
 `;
 
 // Helper to get static DNA without burdening the React state
-const getPersonaDNA = (persona: string): string => {
+export const getPersonaDNA = (persona: string): string => {
   if (persona === Persona.TJUMP) {
     return `${TJUMP_DATA}\n\n[NEURAL_MIND_EXTENSION]:\n${TJUMP_MIND_DATA}`;
   }

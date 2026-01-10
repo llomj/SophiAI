@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Persona, Conversation, Message, SophiData, Note, Concept, CustomPersona } from './types';
 import { loadSophiData, saveSophiData, exportToCSV, saveApiKey, loadApiKey } from './utils/storage';
-import { getPhilosophicalResponse } from './services/geminiService';
+import { getPhilosophicalResponse, getPersonaDNA } from './services/geminiService';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import ConceptMap from './components/ConceptGraph';
@@ -662,27 +662,57 @@ const App: React.FC = () => {
           {activeTab === 'graph' && <ConceptMap concepts={archive.concepts} conversations={archive.conversations} onConceptClick={() => {}} onResumeConversation={(id) => { setCurrentConversationId(id); setActiveTab('chat'); }} />}
           
           {(activeTab === 'forge' || activeTab === 'userprompt') && (
-            <div className="h-full p-4 lg:p-12 animate-in fade-in">
-              <div className="h-full bg-[#0a0b10] border border-slate-800 rounded-sm flex flex-col">
-                <div className="p-4 border-b border-slate-800 mono text-[10px] text-slate-500 uppercase tracking-widest">
-                  {activeTab === 'forge' ? `Logic_Forge: ${activePersona}` : 'User_Identity_Protocol'}
+            <div className="h-full p-4 lg:p-12 animate-in fade-in overflow-y-auto custom-scrollbar">
+              {activeTab === 'forge' ? (
+                <div className="space-y-6 max-w-4xl mx-auto">
+                  {/* Base DNA Profile Section */}
+                  <div className="bg-[#0a0b10] border border-slate-800 rounded-sm flex flex-col">
+                    <div className="p-4 border-b border-slate-800 mono text-[10px] text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                      <span>Base_Profile: {activePersona}</span>
+                      <span className="text-[8px] text-slate-600">Read-Only</span>
+                    </div>
+                    <div className="p-6 mono text-xs text-slate-400 leading-relaxed whitespace-pre-wrap max-h-[400px] overflow-y-auto custom-scrollbar">
+                      {getPersonaDNA(activePersona) || 'No base profile available for this persona.'}
+                    </div>
+                  </div>
+
+                  {/* User Augmentations Section */}
+                  <div className="bg-[#0a0b10] border border-cyan-500/30 rounded-sm flex flex-col">
+                    <div className="p-4 border-b border-slate-800 mono text-[10px] text-cyan-400 uppercase tracking-widest">
+                      User_Augmentations: {activePersona}
+                    </div>
+                    <textarea 
+                      className="flex-1 min-h-[300px] w-full bg-transparent p-6 mono text-sm text-slate-300 outline-none resize-none leading-relaxed"
+                      placeholder="Add your custom augmentations here. These will be combined with the base profile above."
+                      value={archive.personaAugmentations[activePersona] || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setArchive(prev => {
+                          if (!prev) return null;
+                          return { ...prev, personaAugmentations: { ...prev.personaAugmentations, [activePersona]: val } };
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
-                <textarea 
-                  className="flex-1 w-full bg-transparent p-6 mono text-sm text-slate-300 outline-none resize-none leading-relaxed"
-                  value={activeTab === 'forge' ? (archive.personaAugmentations[activePersona] || '') : archive.userPrompt}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setArchive(prev => {
-                      if (!prev) return null;
-                      if (activeTab === 'forge') {
-                        return { ...prev, personaAugmentations: { ...prev.personaAugmentations, [activePersona]: val } };
-                      } else {
+              ) : (
+                <div className="h-full bg-[#0a0b10] border border-slate-800 rounded-sm flex flex-col">
+                  <div className="p-4 border-b border-slate-800 mono text-[10px] text-slate-500 uppercase tracking-widest">
+                    User_Identity_Protocol
+                  </div>
+                  <textarea 
+                    className="flex-1 w-full bg-transparent p-6 mono text-sm text-slate-300 outline-none resize-none leading-relaxed"
+                    value={archive.userPrompt}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setArchive(prev => {
+                        if (!prev) return null;
                         return { ...prev, userPrompt: val };
-                      }
-                    });
-                  }}
-                />
-              </div>
+                      });
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
