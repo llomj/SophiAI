@@ -60,6 +60,8 @@ export const getPhilosophicalResponse = async (
   }
   
   console.log("✅ API Key loaded, length:", apiKey.length);
+  console.log("✅ API Key starts with:", apiKey.substring(0, 4));
+  
   const ai = new GoogleGenAI({ apiKey });
   
   // Resolve Persona Config
