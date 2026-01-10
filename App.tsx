@@ -181,7 +181,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden overflow-x-hidden relative font-sans touch-none lg:touch-auto" style={{ maxWidth: '100%', width: '100%', height: '100vh', height: '-webkit-fill-available', overflowX: 'hidden', position: 'fixed', left: 0, right: 0, top: 0 }}>
+    <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden overflow-x-hidden relative font-sans touch-none lg:touch-auto" style={{ maxWidth: '100%', width: '100%', height: '-webkit-fill-available', overflowX: 'hidden', position: 'fixed', left: 0, right: 0, top: 0 }}>
       {isHelpOpen && (
         <div className="fixed inset-0 z-[150] bg-black/95 p-4 lg:p-6 flex items-center justify-center animate-in fade-in" onClick={(e) => {
           if (e.target === e.currentTarget) setIsHelpOpen(false);
@@ -228,7 +228,7 @@ const App: React.FC = () => {
                       <ol className="text-xs text-slate-400 space-y-1.5 ml-4 list-decimal serif">
                         <li>Select a matrix persona from the sidebar (TJump, Stoic, etc.)</li>
                         <li>Type your question or statement in the "SEND_INPUT..." field</li>
-                        <li>Press Enter (>>) or click the send button to submit</li>
+                        <li>Press Enter (double arrow) or click the send button to submit</li>
                         <li>View responses with highlighted logical fallacies or inconsistencies</li>
                         <li>Click the speaker icon next to messages for text-to-speech</li>
                         <li>Use the microphone icon for voice input</li>
@@ -397,7 +397,7 @@ const App: React.FC = () => {
               return (
                 <button key={t} onClick={() => setActiveTab(t as any)} className={`px-4 py-3 text-base lg:text-lg mono uppercase font-bold shrink-0 border-b-2 transition-all ${activeTab === t ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-600 hover:text-slate-400'}`}>
                   {displayText}
-                </button>
+              </button>
               );
             })}
           </div>
