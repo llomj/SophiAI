@@ -91,7 +91,7 @@ export const saveApiKey = (apiKey: string): void => {
     // Clean the API key: remove all whitespace, newlines, and quotes
     const cleanedKey = apiKey.trim().replace(/[\r\n\t]/g, '').replace(/^["']|["']$/g, '');
     
-    // Only save if the key is not empty
+    // Save the cleaned key (even if empty - let the service handle validation)
     if (cleanedKey) {
       localStorage.setItem(API_KEY_STORAGE, cleanedKey);
       console.log('✅ API Key saved successfully, length:', cleanedKey.length);
@@ -113,11 +113,7 @@ export const loadApiKey = (): string | null => {
     // Clean the key when loading (remove any accidental whitespace)
     const cleanedKey = key.trim().replace(/[\r\n\t]/g, '');
     
-    // Validate basic format (Google API keys typically start with AIza and are ~39 chars)
-    if (cleanedKey.length < 20 || (!cleanedKey.startsWith('AIza') && cleanedKey.length < 30)) {
-      console.warn('⚠️ API Key format looks invalid, but loading anyway');
-    }
-    
+    // Return the cleaned key if it exists
     return cleanedKey || null;
   } catch (e) {
     console.error('❌ Failed to load API key:', e);

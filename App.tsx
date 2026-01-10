@@ -61,7 +61,7 @@ const App: React.FC = () => {
     // Clean the input before saving
     const cleaned = apiKeyInput.trim().replace(/[\r\n\t]/g, '').replace(/^["']|["']$/g, '');
     
-    if (cleaned && cleaned.length >= 20) {
+    if (cleaned) {
       saveApiKey(cleaned);
       setIsApiKeyModalOpen(false);
       // Small delay before reload to ensure localStorage write completes
@@ -69,7 +69,7 @@ const App: React.FC = () => {
         window.location.reload();
       }, 100);
     } else {
-      alert('Please enter a valid API key (at least 20 characters)');
+      alert('Please enter an API key');
     }
   };
 

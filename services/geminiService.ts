@@ -43,11 +43,11 @@ export const getPhilosophicalResponse = async (
 ): Promise<{ text: string; contradictionDetected: boolean; fallacies: Fallacy[] }> => {
   // Check for user-provided API key first, then fallback to environment variable (dev only)
   const userApiKey = loadApiKey();
-  const envApiKey = (process.env.API_KEY && process.env.API_KEY !== 'null' && process.env.API_KEY !== 'undefined' ? process.env.API_KEY : null) || 
-                    (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'null' && process.env.GEMINI_API_KEY !== 'undefined' ? process.env.GEMINI_API_KEY : null);
+  const envApiKey = (process.env.API_KEY && process.env.API_KEY !== 'null' && process.env.API_KEY !== 'undefined' ? String(process.env.API_KEY).trim() : null) || 
+                    (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'null' && process.env.GEMINI_API_KEY !== 'undefined' ? String(process.env.GEMINI_API_KEY).trim() : null);
   const apiKey = userApiKey || envApiKey;
   
-  if (!apiKey || apiKey === 'null' || apiKey === 'undefined' || apiKey.trim().length === 0) {
+  if (!apiKey || apiKey === 'null' || apiKey === 'undefined' || !apiKey.trim()) {
     console.error("❌ API Key is missing!");
     console.error("Please set your API key using the 🔑 key icon in the sidebar.");
     console.error("Get your API key from: https://aistudio.google.com/app/apikey");
@@ -161,11 +161,11 @@ export const getPhilosophicalResponse = async (
 export const extractConceptsFromText = async (conversationText: string, existingConceptLabels: string[], conversationId?: string): Promise<Partial<Concept>[]> => {
   // Check for user-provided API key first, then fallback to environment variable (dev only)
   const userApiKey = loadApiKey();
-  const envApiKey = (process.env.API_KEY && process.env.API_KEY !== 'null' && process.env.API_KEY !== 'undefined' ? process.env.API_KEY : null) || 
-                    (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'null' && process.env.GEMINI_API_KEY !== 'undefined' ? process.env.GEMINI_API_KEY : null);
+  const envApiKey = (process.env.API_KEY && process.env.API_KEY !== 'null' && process.env.API_KEY !== 'undefined' ? String(process.env.API_KEY).trim() : null) || 
+                    (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'null' && process.env.GEMINI_API_KEY !== 'undefined' ? String(process.env.GEMINI_API_KEY).trim() : null);
   const apiKey = userApiKey || envApiKey;
   
-  if (!apiKey || apiKey.trim().length === 0) {
+  if (!apiKey || !apiKey.trim()) {
     console.error("API Key is missing for concept extraction!");
     return [];
   }
