@@ -302,7 +302,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 space-y-4 lg:space-y-6 z-10 custom-scrollbar" style={{ maxWidth: '100%', overflowX: 'hidden', paddingBottom: '120px', scrollPaddingBottom: '120px' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 space-y-4 lg:space-y-6 z-10 custom-scrollbar" style={{ maxWidth: '100%', overflowX: 'hidden', paddingBottom: '250px', scrollPaddingBottom: '250px' }}>
         {messages.map((msg) => {
           const isAIVoiceLoading = isTtsLoading === msg.id;
           const isAIVoiceSpeaking = speakingMsgId === msg.id;
