@@ -56,6 +56,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   const [isTtsLoading, setIsTtsLoading] = useState<string | null>(null);
   const [activeFallacies, setActiveFallacies] = useState<Fallacy[] | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -321,10 +322,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
               disabled={isLoading}
               rows={Math.min(4, input.split('\n').length || 1)}
               placeholder={isListening ? "LISTENING..." : "SEND_INPUT..."}
-              className={`w-full min-w-0 pl-4 pr-10 py-3 bg-[#05060b] border rounded-sm focus:outline-none text-sm mono text-slate-200 resize-none whitespace-pre-wrap leading-relaxed custom-scrollbar ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'border-slate-800 focus:border-cyan-500/50'}`}
+              className={`w-full min-w-0 pl-4 pr-10 py-3 bg-[#05060b] border rounded-sm focus:outline-none text-sm mono text-slate-200 resize-none whitespace-pre-wrap leading-relaxed custom-scrollbar ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : isInputFocused ? 'border-cyan-500/50 focus:border-cyan-500' : 'border-slate-800'}`}
               style={{ maxWidth: '100%', boxSizing: 'border-box', width: '100%', overflowX: 'hidden', wordWrap: 'break-word', overflowWrap: 'break-word' }}
             />
             <div className="absolute right-2 bottom-2.5 flex items-center pointer-events-none">
@@ -341,8 +344,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="bg-cyan-500 text-slate-950 hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] rounded-sm flex items-center justify-center"
-            style={{ width: '44px', minWidth: '44px', maxWidth: '44px', height: '44px', flexShrink: 0, flexGrow: 0 }}
+            className={`rounded-sm flex items-center justify-center transition-all ${isInputFocused ? 'bg-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : !input.trim() || isLoading ? 'bg-cyan-500/20 text-cyan-400/30' : 'bg-cyan-500 text-slate-950'} hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale`}
+            style={{ width: '48px', minWidth: '48px', maxWidth: '48px', height: '48px', flexShrink: 0, flexGrow: 0, alignSelf: 'flex-end' }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
           </button>
