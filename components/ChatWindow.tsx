@@ -175,7 +175,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const handleSend = () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !hasApiKey) return;
     onSendMessage(input.trim());
     setInput('');
     if (isListening) recognitionRef.current?.stop();
