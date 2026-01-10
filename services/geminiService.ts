@@ -153,8 +153,9 @@ export const getPhilosophicalResponse = async (
   } catch (error: any) {
     console.error("Gemini API Error:", error);
     const errorMessage = error?.message || error?.toString() || "Unknown error";
-    const errorText = errorMessage.includes("API key") 
-      ? "Error: Invalid or missing API key. Please check your GEMINI_API_KEY in .env file."
+    const isApiKeyError = errorMessage.includes("API key") || errorMessage.includes("401") || errorMessage.includes("403");
+    const errorText = isApiKeyError
+      ? "🔑 **API Key Error**\n\nYour API key appears to be invalid or expired. Please:\n\n1. Click the 🔑 key icon in the sidebar\n2. Check your API key at: https://aistudio.google.com/app/apikey\n3. Make sure you copied the entire key correctly\n4. Try saving it again\n\nError: " + errorMessage
       : `API Error: ${errorMessage}`;
     return { text: errorText, contradictionDetected: false, fallacies: [] };
   }
