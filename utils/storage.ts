@@ -76,3 +76,33 @@ export const exportToCSV = (data: any[], filename: string) => {
   link.click();
   document.body.removeChild(link);
 };
+
+// API Key Management
+const API_KEY_STORAGE = 'sophi_ai_api_key';
+
+export const saveApiKey = (apiKey: string): void => {
+  try {
+    localStorage.setItem(API_KEY_STORAGE, apiKey);
+    console.log('✅ API Key saved successfully');
+  } catch (e) {
+    console.error('❌ Failed to save API key:', e);
+  }
+};
+
+export const loadApiKey = (): string | null => {
+  try {
+    return localStorage.getItem(API_KEY_STORAGE);
+  } catch (e) {
+    console.error('❌ Failed to load API key:', e);
+    return null;
+  }
+};
+
+export const clearApiKey = (): void => {
+  try {
+    localStorage.removeItem(API_KEY_STORAGE);
+    console.log('✅ API Key cleared');
+  } catch (e) {
+    console.error('❌ Failed to clear API key:', e);
+  }
+};

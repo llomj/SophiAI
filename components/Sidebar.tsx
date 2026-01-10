@@ -22,6 +22,7 @@ interface SidebarProps {
   emojiMode: boolean;
   onToggleEmojis: () => void;
   onToggleHelp: () => void;
+  onToggleApiKey: () => void;
   onLaunchDialectic: (topic: string, persona: string) => void;
 }
 
@@ -44,6 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   emojiMode,
   onToggleEmojis,
   onToggleHelp,
+  onToggleApiKey,
   onLaunchDialectic
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -329,6 +331,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                       title="System Information"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+
+                    <button 
+                      onClick={onToggleApiKey}
+                      className="p-1.5 rounded-full bg-slate-900/40 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-400 transition-all group"
+                      title="API Key Configuration"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                     </button>
                   </div>
                 </div>

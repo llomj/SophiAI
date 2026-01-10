@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Persona, Conversation, Message, SophiData, Note, Concept, CustomPersona } from './types';
-import { loadSophiData, saveSophiData, exportToCSV } from './utils/storage';
+import { loadSophiData, saveSophiData, exportToCSV, saveApiKey, loadApiKey } from './utils/storage';
 import { getPhilosophicalResponse } from './services/geminiService';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
@@ -18,6 +18,8 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
   const [newPersona, setNewPersona] = useState({ name: '', description: '', instruction: '' });
 
   // 1. ASYNCHRONOUS INITIALIZATION
@@ -29,11 +31,33 @@ const App: React.FC = () => {
       setActivePersona(loadedData.activePersona);
       setCurrentConversationId(loadedData.currentConversationId);
       
+      // Load saved API key if it exists
+      const savedApiKey = loadApiKey();
+      if (savedApiKey) {
+        setApiKeyInput(savedApiKey);
+      }
+      
       // Delay finishing the loading animation to let the browser breathe
       setTimeout(() => setIsInitializing(false), 300);
     }, 100);
     return () => clearTimeout(initTimer);
   }, []);
+
+  // Handle API key save
+  const handleSaveApiKey = () => {
+    if (apiKeyInput.trim()) {
+      saveApiKey(apiKeyInput.trim());
+      setIsApiKeyModalOpen(false);
+      // Force page reload to apply new API key
+      window.location.reload();
+    }
+  };
+
+  const handleClearApiKey = () => {
+    setApiKeyInput('');
+    saveApiKey('');
+    setIsApiKeyModalOpen(false);
+  };
 
   // 2. IDLE-TIME PERSISTENCE
   // Decoupled saving from the interaction loop
@@ -364,6 +388,94 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* API Key Configuration Modal */}
+      {isApiKeyModalOpen && (
+        <div className="fixed inset-0 z-[150] bg-black/95 p-4 lg:p-6 flex items-center justify-center animate-in fade-in" onClick={(e) => {
+          if (e.target === e.currentTarget) setIsApiKeyModalOpen(false);
+        }}>
+          <div className="max-w-2xl w-full max-h-[90vh] bg-[#0a0b10] border border-cyan-500/20 rounded-sm shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-800 bg-black/40 flex items-center justify-between">
+              <div>
+                <h2 className="mono text-cyan-400 font-bold uppercase tracking-widest text-lg">API Key Configuration</h2>
+                <p className="text-xs text-slate-500 mono uppercase tracking-wider mt-1">Google Gemini API Access</p>
+              </div>
+              <button onClick={() => setIsApiKeyModalOpen(false)} className="p-2 text-slate-500 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs mono text-cyan-400 uppercase tracking-wider font-bold mb-2">
+                    Your Google Gemini API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    placeholder="Enter your API key here..."
+                    className="w-full px-4 py-3 bg-[#05060b] border border-slate-800 rounded-sm text-sm mono text-slate-200 focus:outline-none focus:border-cyan-500/50 placeholder-slate-600"
+                  />
+                  <p className="text-xs text-slate-500 mt-2 serif italic">
+                    Your API key is stored locally and never shared. Get your key from{' '}
+                    <a 
+                      href="https://aistudio.google.com/app/apikey" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-cyan-400 hover:text-cyan-300 underline"
+                    >
+                      Google AI Studio
+                    </a>
+                  </p>
+                </div>
+
+                <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                  <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">Why Set Your Own API Key?</p>
+                  <ul className="text-xs text-slate-400 space-y-1.5 ml-4 list-disc serif">
+                    <li>Higher rate limits and better performance</li>
+                    <li>Personal quota control and usage tracking</li>
+                    <li>Enhanced security and privacy</li>
+                    <li>Access to latest Gemini models and features</li>
+                  </ul>
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-sm">
+                  <p className="text-xs mono text-amber-400 uppercase tracking-wider font-bold mb-2">⚠️ Security Note</p>
+                  <p className="text-xs text-slate-400 serif">
+                    Your API key is stored in your browser's local storage. Never share your API key publicly or commit it to version control. If you suspect your key has been compromised, revoke it immediately in Google AI Studio and generate a new one.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-slate-800 bg-black/40 flex justify-between items-center">
+              <button 
+                onClick={handleClearApiKey}
+                className="px-4 py-2 text-slate-400 hover:text-red-400 mono text-xs uppercase tracking-widest transition-colors"
+              >
+                Clear Key
+              </button>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setIsApiKeyModalOpen(false)} 
+                  className="px-6 py-2 border border-slate-700 text-slate-300 mono text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSaveApiKey}
+                  disabled={!apiKeyInput.trim()}
+                  className="px-6 py-2 bg-cyan-500 text-slate-950 mono text-xs font-bold uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] disabled:opacity-20 disabled:cursor-not-allowed"
+                >
+                  Save & Reload
+                </button>
+              </div>
+            </div>
+           </div>
+        </div>
+      )}
+
       <Sidebar 
         conversations={archive.conversations}
         activeId={currentConversationId}
@@ -383,6 +495,11 @@ const App: React.FC = () => {
         emojiMode={archive.emojiMode}
         onToggleEmojis={() => setArchive(prev => prev ? ({...prev, emojiMode: !prev.emojiMode}) : null)}
         onToggleHelp={() => setIsHelpOpen(true)}
+        onToggleApiKey={() => {
+          const savedApiKey = loadApiKey();
+          setApiKeyInput(savedApiKey || '');
+          setIsApiKeyModalOpen(true);
+        }}
         onLaunchDialectic={(t, p) => { setActivePersona(p); setCurrentConversationId(null); setActiveTab('chat'); }}
       />
 

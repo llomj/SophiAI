@@ -4,6 +4,7 @@ import { PERSONA_CONFIGS } from "../constants";
 import { MATRIX_DNA } from "../persona_forge/matrix_dna";
 import { TJUMP_DATA } from "../persona_forge/tjump";
 import { TJUMP_MIND_DATA } from "../persona_forge/TJump_mind";
+import { loadApiKey } from "../utils/storage";
 
 const UNIVERSAL_DEBATE_PROTOCOL = `
 [DEBATE_PROTOCOL_ACTIVE]
@@ -40,7 +41,9 @@ export const getPhilosophicalResponse = async (
   customPersonas: CustomPersona[] = [],
   emojiMode: boolean = false
 ): Promise<{ text: string; contradictionDetected: boolean; fallacies: Fallacy[] }> => {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  // Check for user-provided API key first, then fallback to environment variable
+  const userApiKey = loadApiKey();
+  const apiKey = userApiKey || process.env.API_KEY || process.env.GEMINI_API_KEY;
   
   if (!apiKey || apiKey === 'null' || apiKey === 'undefined') {
     console.error("❌ API Key is missing!");

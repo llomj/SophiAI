@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Message, Persona, Note, CustomPersona, Fallacy } from '../types';
 import { PERSONA_CONFIGS } from '../constants';
 import { GoogleGenAI, Modality } from "@google/genai";
+import { loadApiKey } from '../utils/storage';
 
 interface ChatWindowProps {
   messages: Message[];
@@ -118,7 +119,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
     setIsTtsLoading(msg.id);
     try {
-      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+      // Check for user-provided API key first, then fallback to environment variable
+      const userApiKey = loadApiKey();
+      const apiKey = userApiKey || process.env.API_KEY || process.env.GEMINI_API_KEY;
       if (!apiKey) {
         console.error("API Key is missing for TTS!");
         setIsTtsLoading(null);
