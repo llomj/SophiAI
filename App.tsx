@@ -12,6 +12,7 @@ const App: React.FC = () => {
   
   // FAST UI STATE: Handles navigation and immediate feedback
   const [activePersona, setActivePersona] = useState<string>(Persona.TJUMP);
+  const [activePersonas, setActivePersonas] = useState<string[]>([Persona.TJUMP]); // Multi-persona support
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'chat' | 'graph' | 'notes' | 'forge' | 'userlog' | 'userprompt' | 'customise'>('chat');
   const [isLoading, setIsLoading] = useState(false);
@@ -84,7 +85,17 @@ const App: React.FC = () => {
 
   const activeConversation = useMemo(() => {
     if (!archive) return null;
-    return archive.conversations.find(c => c.id === currentConversationId) || null;
+    const conv = archive.conversations.find(c => c.id === currentConversationId);
+    if (conv) {
+      // Update activePersonas from conversation if it has multiple personas
+      if (conv.personas && conv.personas.length > 0) {
+        setActivePersonas(conv.personas);
+      } else {
+        // For backward compatibility, use single persona
+        setActivePersonas([conv.persona || activePersona]);
+      }
+    }
+    return conv || null;
   }, [archive, currentConversationId]);
 
   const handleSendMessage = useCallback(async (text: string) => {
@@ -100,12 +111,18 @@ const App: React.FC = () => {
         title: text.slice(0, 15).toUpperCase() + '...',
         messages: [],
         tags: [],
-        persona: activePersona,
+        persona: activePersonas[0] || activePersona, // Primary persona for backward compatibility
+        personas: activePersonas.length > 0 ? activePersonas : [activePersona], // Multi-persona support
         createdAt: Date.now(),
         updatedAt: Date.now()
       };
       updatedConversations = [newConv, ...updatedConversations];
       setCurrentConversationId(currentId);
+    } else {
+      // Update conversation with current active personas
+      updatedConversations = updatedConversations.map(c => 
+        c.id === currentId ? { ...c, personas: activePersonas.length > 0 ? activePersonas : [activePersona] } : c
+      );
     }
 
     const userMessage: Message = { id: crypto.randomUUID(), role: 'user', content: text, timestamp: Date.now() };
@@ -141,20 +158,52 @@ const App: React.FC = () => {
         archive.emojiMode
       );
 
-      const assistantMessage: Message = {
+      // Get list of personas to respond (use conversation's personas or activePersonas)
+      const currentConv = updatedConversations.find(c => c.id === currentId);
+      const personasToRespond = currentConv?.personas && currentConv.personas.length > 0 
+        ? currentConv.personas 
+        : (activePersonas.length > 0 ? activePersonas : [activePersona]);
+
+      // Call API for each persona in parallel
+      const responsePromises = personasToRespond.map(persona =>
+        getPhilosophicalResponse(
+          persona,
+          messagesWithUser,
+          text,
+          archive.notes.find(n => n.id === archive.activeContextNoteId)?.content,
+          archive.personaAugmentations[persona],
+          archive.userPrompt,
+          archive.conversations,
+          archive.customPersonas,
+          archive.emojiMode
+        ).then(response => ({ persona, ...response }))
+      );
+
+      const responses = await Promise.all(responsePromises);
+
+      // Create assistant messages for each persona response
+      const assistantMessages: Message[] = responses.map(({ persona, text: responseText, contradictionDetected, fallacies }) => ({
         id: crypto.randomUUID(),
-        role: 'assistant',
+        role: 'assistant' as const,
         content: responseText,
         timestamp: Date.now(),
+        persona: persona, // Track which persona sent this message
         metadata: { contradictionDetected, fallacies }
-      };
+      }));
 
       setArchive(prev => {
         if (!prev) return null;
         return {
           ...prev,
           conversations: prev.conversations.map(c => 
-            c.id === currentId ? { ...c, messages: [...c.messages, assistantMessage], updatedAt: Date.now() } : c
+            c.id === currentId 
+              ? { 
+                  ...c, 
+                  messages: [...c.messages, ...assistantMessages], 
+                  updatedAt: Date.now(),
+                  personas: personasToRespond // Save active personas to conversation
+                } 
+              : c
           )
         };
       });
@@ -180,7 +229,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [activePersona, currentConversationId, archive]);
+  }, [activePersona, activePersonas, currentConversationId, archive]);
 
   const handlePersonaChange = (p: string) => {
     setActivePersona(p);
@@ -572,6 +621,8 @@ const App: React.FC = () => {
             <ChatWindow 
               messages={activeConversation?.messages || []}
               activePersona={activePersona}
+              activePersonas={activePersonas}
+              onPersonasChange={setActivePersonas}
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
               onToggleSidebar={() => setIsSidebarOpen(true)}

@@ -7,6 +7,8 @@ import { loadApiKey } from '../utils/storage';
 interface ChatWindowProps {
   messages: Message[];
   activePersona: string;
+  activePersonas?: string[];
+  onPersonasChange?: (personas: string[]) => void;
   onSendMessage: (text: string) => void;
   isLoading: boolean;
   onToggleSidebar?: () => void;
@@ -45,7 +47,9 @@ async function decodeAudioData(
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ 
   messages, 
-  activePersona, 
+  activePersona,
+  activePersonas = [activePersona],
+  onPersonasChange,
   onSendMessage, 
   isLoading, 
   onToggleSidebar,
@@ -244,14 +248,45 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="px-4 lg:px-6 py-4 border-b border-slate-800 flex flex-col space-y-2 bg-black/40 backdrop-blur-md z-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
-            <div className="flex items-center space-x-2 min-w-0 flex-1">
-              <div className={`w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full animate-pulse shrink-0 ${resolvedPersona.color.split(' ')[1]}`}></div>
-              <div className="min-w-0 flex-1">
-                <h2 className="font-bold text-slate-100 text-lg lg:text-xl mono tracking-tight whitespace-normal break-words uppercase">{activePersona}</h2>
-              </div>
+            <div className="flex items-center space-x-2 min-w-0 flex-1 flex-wrap gap-2">
+              {activePersonas.map((persona, idx) => {
+                const personaConfig = PERSONA_CONFIGS[persona] || PERSONA_CONFIGS[Persona.TJUMP];
+                return (
+                  <div key={idx} className="flex items-center space-x-2 px-2 py-1 bg-slate-900/50 border border-slate-700 rounded-sm">
+                    <div className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${personaConfig.color.split(' ')[1]}`}></div>
+                    <span className="text-xs mono text-slate-300 uppercase tracking-tight truncate max-w-[120px]">{persona}</span>
+                    {activePersonas.length > 1 && onPersonasChange && (
+                      <button
+                        onClick={() => {
+                          const newPersonas = activePersonas.filter((_, i) => i !== idx);
+                          onPersonasChange(newPersonas.length > 0 ? newPersonas : [activePersona]);
+                        }}
+                        className="text-slate-500 hover:text-red-400 ml-1"
+                        title="Remove persona"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {onPersonasChange && (
+                <button
+                  onClick={onToggleSidebar}
+                  className="px-2 py-1 text-xs mono text-cyan-400 border border-cyan-500/30 rounded-sm hover:bg-cyan-500/10 transition-all"
+                  title="Add more personas"
+                >
+                  + Add
+                </button>
+              )}
             </div>
           </div>
         </div>
+        {activePersonas.length > 1 && (
+          <div className="text-[9px] mono text-slate-500 uppercase tracking-wider">
+            Multi-persona mode: All selected personas will respond to each message
+          </div>
+        )}
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 space-y-4 lg:space-y-6 z-10 custom-scrollbar" style={{ maxWidth: '100%', overflowX: 'hidden', paddingBottom: '120px', scrollPaddingBottom: '120px' }}>
@@ -287,6 +322,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                 )}
 
+                {msg.role === 'assistant' && msg.persona && (
+                  <div className="mb-2 pb-2 border-b border-slate-700/50">
+                    <span className="text-[9px] mono text-cyan-400 uppercase tracking-widest font-bold">{msg.persona}</span>
+                  </div>
+                )}
                 {msg.role === 'assistant' && (
                   <button 
                     onClick={() => handleSpeak(msg)}

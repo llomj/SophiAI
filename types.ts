@@ -148,6 +148,7 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  persona?: string; // Which persona sent this message (for multi-persona chats)
   metadata?: {
     contradictionDetected?: boolean;
     epistemicWarning?: string;
@@ -160,7 +161,8 @@ export interface Conversation {
   title: string;
   messages: Message[];
   tags: string[];
-  persona: string;
+  persona: string; // Primary persona (for backward compatibility)
+  personas?: string[]; // Multiple active personas for multi-persona mode
   createdAt: number;
   updatedAt: number;
   pinnedNoteId?: string;
