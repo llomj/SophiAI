@@ -233,6 +233,16 @@ const App: React.FC = () => {
 
   const handlePersonaChange = (p: string) => {
     setActivePersona(p);
+    // Add persona to activePersonas if not already present (multi-persona support)
+    setActivePersonas(prev => {
+      if (prev.includes(p)) {
+        // If already in list, make it the first one (primary)
+        return [p, ...prev.filter(persona => persona !== p)];
+      } else {
+        // Add to list
+        return [p, ...prev];
+      }
+    });
     if (!currentConversationId || activeConversation?.persona !== p) {
       setCurrentConversationId(null);
     }
