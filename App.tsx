@@ -25,6 +25,7 @@ const App: React.FC = () => {
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [newPersona, setNewPersona] = useState({ name: '', description: '', instruction: '' });
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   // 1. ASYNCHRONOUS INITIALIZATION
   // Move heavy JSON parsing and memory allocation out of the main thread boot
