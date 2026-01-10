@@ -552,7 +552,7 @@ const App: React.FC = () => {
       <Sidebar 
         conversations={archive.conversations}
         activeId={currentConversationId}
-        onSelect={setCurrentConversationId}
+        onSelect={(id) => { setCurrentConversationId(id); setActiveTab('chat'); }}
         onNew={() => { setCurrentConversationId(null); setActiveTab('chat'); }}
         onSearch={() => {}}
         activePersona={activePersona}
