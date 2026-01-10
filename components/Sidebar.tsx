@@ -22,6 +22,7 @@ interface SidebarProps {
   emojiMode: boolean;
   onToggleEmojis: () => void;
   onToggleHelp: () => void;
+  onToggleFallacies: () => void;
   onToggleApiKey: () => void;
   onLaunchDialectic: (topic: string, persona: string) => void;
 }
@@ -45,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   emojiMode,
   onToggleEmojis,
   onToggleHelp,
+  onToggleFallacies,
   onToggleApiKey,
   onLaunchDialectic
 }) => {
@@ -336,6 +338,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                       title="System Information"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+
+                    <button 
+                      onClick={onToggleFallacies}
+                      className="p-1.5 rounded-full bg-slate-900/40 hover:bg-amber-500/10 text-slate-500 hover:text-amber-400 transition-all group"
+                      title="Logical Fallacies Reference"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </button>
 
                     <button 

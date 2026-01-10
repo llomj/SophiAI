@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Persona, Conversation, Message, SophiData, Note, Concept, CustomPersona } from './types';
 import { loadSophiData, saveSophiData, exportToCSV, saveApiKey, loadApiKey } from './utils/storage';
 import { getPhilosophicalResponse, getPersonaDNA } from './services/geminiService';
+import { LOGICAL_FALLACIES } from './utils/fallacies';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import ConceptMap from './components/ConceptGraph';
@@ -19,6 +20,8 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isFallaciesModalOpen, setIsFallaciesModalOpen] = useState(false);
+  const [fallaciesSearchTerm, setFallaciesSearchTerm] = useState('');
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [newPersona, setNewPersona] = useState({ name: '', description: '', instruction: '' });
@@ -461,6 +464,79 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Logical Fallacies Reference Modal */}
+      {isFallaciesModalOpen && (
+        <div className="fixed inset-0 z-[150] bg-black/95 p-4 lg:p-6 flex items-center justify-center animate-in fade-in" onClick={(e) => {
+          if (e.target === e.currentTarget) setIsFallaciesModalOpen(false);
+        }}>
+          <div className="max-w-5xl w-full max-h-[90vh] bg-[#0a0b10] border border-amber-500/20 rounded-sm shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-800 bg-black/40 flex items-center justify-between">
+              <div>
+                <h2 className="mono text-amber-400 font-bold uppercase tracking-widest text-lg">Logical Fallacies Reference</h2>
+                <p className="text-xs text-slate-500 mono uppercase tracking-wider mt-1">Complete Guide to Reasoning Errors</p>
+              </div>
+              <button onClick={() => setIsFallaciesModalOpen(false)} className="p-2 text-slate-500 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-4 border-b border-slate-800 bg-black/20">
+              <input
+                type="text"
+                placeholder="Search fallacies..."
+                value={fallaciesSearchTerm}
+                onChange={(e) => setFallaciesSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 bg-[#05060b] border border-slate-800 rounded-sm text-sm mono text-slate-200 focus:outline-none focus:border-amber-500/50 placeholder-slate-600"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {LOGICAL_FALLACIES.filter(f => 
+                  fallaciesSearchTerm === '' || 
+                  f.name.toLowerCase().includes(fallaciesSearchTerm.toLowerCase()) ||
+                  f.description.toLowerCase().includes(fallaciesSearchTerm.toLowerCase()) ||
+                  f.example.toLowerCase().includes(fallaciesSearchTerm.toLowerCase())
+                ).map((fallacy, idx) => (
+                  <div key={idx} className="bg-[#05060b] border border-slate-800 rounded-sm p-4 space-y-3 hover:border-amber-500/30 transition-all">
+                    <h3 className="mono text-amber-400 font-bold uppercase tracking-wider text-sm">{fallacy.name}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed serif">{fallacy.description}</p>
+                    <div className="bg-amber-500/5 border-l-2 border-amber-500/30 pl-3 py-2">
+                      <p className="text-[10px] mono text-amber-500/70 uppercase tracking-tight mb-1">Example:</p>
+                      <p className="text-xs text-slate-500 italic serif">"{fallacy.example}"</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {LOGICAL_FALLACIES.filter(f => 
+                fallaciesSearchTerm === '' || 
+                f.name.toLowerCase().includes(fallaciesSearchTerm.toLowerCase()) ||
+                f.description.toLowerCase().includes(fallaciesSearchTerm.toLowerCase()) ||
+                f.example.toLowerCase().includes(fallaciesSearchTerm.toLowerCase())
+              ).length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-sm text-slate-500 mono">No fallacies found matching "{fallaciesSearchTerm}"</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-6 border-t border-slate-800 bg-black/40 flex justify-between items-center">
+              <p className="text-xs text-slate-500 mono">
+                {LOGICAL_FALLACIES.filter(f => 
+                  fallaciesSearchTerm === '' || 
+                  f.name.toLowerCase().includes(fallaciesSearchTerm.toLowerCase()) ||
+                  f.description.toLowerCase().includes(fallaciesSearchTerm.toLowerCase()) ||
+                  f.example.toLowerCase().includes(fallaciesSearchTerm.toLowerCase())
+                ).length} fallacies
+              </p>
+              <button onClick={() => setIsFallaciesModalOpen(false)} className="px-6 py-3 bg-amber-500 text-slate-950 mono text-xs font-bold uppercase tracking-widest hover:bg-amber-400 transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* API Key Configuration Modal */}
       {isApiKeyModalOpen && (
         <div className="fixed inset-0 z-[150] bg-black/95 p-4 lg:p-6 flex items-center justify-center animate-in fade-in" onClick={(e) => {
@@ -568,6 +644,7 @@ const App: React.FC = () => {
         emojiMode={archive.emojiMode}
         onToggleEmojis={() => setArchive(prev => prev ? ({...prev, emojiMode: !prev.emojiMode}) : null)}
         onToggleHelp={() => setIsHelpOpen(true)}
+        onToggleFallacies={() => setIsFallaciesModalOpen(true)}
         onToggleApiKey={() => {
           const savedApiKey = loadApiKey();
           setApiKeyInput(savedApiKey || '');
