@@ -56,6 +56,20 @@ const App: React.FC = () => {
     }, 100);
     return () => clearTimeout(initTimer);
   }, []);
+  
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Handle API key save
   const handleSaveApiKey = () => {
@@ -716,6 +730,23 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full bg-[#05060b] overflow-x-hidden">
+        {/* Offline Indicator */}
+        {!isOnline && (
+          <div className="bg-slate-800/90 border-b border-slate-700 px-4 py-2 flex items-center justify-between shrink-0">
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83M9.88 9.88l-3.536-3.536m0 0a9 9 0 00-2.12 5.303M6.344 6.344L3 3" />
+              </svg>
+              <p className="text-xs mono text-slate-400">
+                <span className="text-amber-400 font-bold">OFFLINE MODE</span> - All data is stored locally and accessible offline
+              </p>
+            </div>
+            <div className="text-[8px] mono text-slate-600">
+              Conversations, logs, and notes available
+            </div>
+          </div>
+        )}
+        
         {/* API Key Warning Banner */}
         {(() => {
           const userApiKey = loadApiKey();
