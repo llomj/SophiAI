@@ -386,10 +386,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => setIsInputFocused(false)}
               disabled={isInputDisabled}
-              rows={Math.min(4, input.split('\n').length || 1)}
+              rows={Math.min(Math.max(3, input.split('\n').length || 1), 8)}
               placeholder={!hasApiKey ? "⚠️ API Key Required - Click 🔑 icon in sidebar" : (isListening ? "LISTENING..." : "SEND_INPUT...")}
-              className={`w-full min-w-0 pl-4 pr-10 py-3 bg-[#05060b] border rounded-sm focus:outline-none text-sm mono text-slate-200 resize-none whitespace-pre-wrap leading-relaxed custom-scrollbar ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : !hasApiKey ? 'border-amber-500/50' : isInputFocused ? 'border-cyan-500/50 focus:border-cyan-500' : 'border-slate-800'}`}
-              style={{ maxWidth: '100%', boxSizing: 'border-box', width: '100%', overflowX: 'hidden', wordWrap: 'break-word', overflowWrap: 'break-word' }}
+              className={`w-full min-w-0 pl-4 pr-10 py-4 bg-[#05060b] border rounded-sm focus:outline-none text-base mono text-slate-200 resize-none whitespace-pre-wrap leading-relaxed custom-scrollbar ${isListening ? 'border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : !hasApiKey ? 'border-amber-500/50' : isInputFocused ? 'border-cyan-500/50 focus:border-cyan-500' : 'border-slate-800'}`}
+              style={{ maxWidth: '100%', boxSizing: 'border-box', width: '100%', overflowX: 'hidden', wordWrap: 'break-word', overflowWrap: 'break-word', minHeight: '60px' }}
             />
             <div className="absolute right-2 bottom-2.5 flex items-center pointer-events-none">
               <button
@@ -406,7 +406,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             onClick={handleSend}
             disabled={!input.trim() || isLoading || !hasApiKey}
             className={`rounded-sm flex items-center justify-center transition-all ${isInputFocused && hasApiKey ? 'bg-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : (!input.trim() || isLoading || !hasApiKey ? 'bg-cyan-500/20 text-cyan-400/30' : 'bg-cyan-500 text-slate-950')} hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale`}
-            style={{ width: '48px', minWidth: '48px', maxWidth: '48px', height: '48px', flexShrink: 0, flexGrow: 0, marginTop: '0px' }}
+            style={{ width: '52px', minWidth: '52px', maxWidth: '52px', height: '52px', flexShrink: 0, flexGrow: 0, alignSelf: 'flex-start', marginTop: '0px' }}
             title={!hasApiKey ? "API Key Required" : ""}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
