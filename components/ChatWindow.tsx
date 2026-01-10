@@ -316,7 +316,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       <div className="fixed lg:relative bottom-0 left-0 right-0 lg:bottom-auto pt-3 border-t border-slate-800 bg-[#0a0b10]/95 backdrop-blur-xl z-50 overflow-x-hidden" style={{ width: '100%', maxWidth: '100%', left: 0, right: 0, paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))', position: 'fixed', bottom: 0 }}>
-        <div className="flex items-end gap-2 px-4 w-full" style={{ maxWidth: '100%', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+        <div className="flex items-start gap-2 px-4 w-full" style={{ maxWidth: '100%', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
           <div className="flex-1 min-w-0 relative" style={{ flex: '1 1 0%', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
             <textarea
               value={input}
@@ -345,7 +345,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             className={`rounded-sm flex items-center justify-center transition-all ${isInputFocused ? 'bg-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : !input.trim() || isLoading ? 'bg-cyan-500/20 text-cyan-400/30' : 'bg-cyan-500 text-slate-950'} hover:bg-cyan-400 disabled:opacity-20 disabled:grayscale`}
-            style={{ width: '48px', minWidth: '48px', maxWidth: '48px', height: '48px', flexShrink: 0, flexGrow: 0, alignSelf: 'flex-end' }}
+            style={{ width: '48px', minWidth: '48px', maxWidth: '48px', height: '48px', flexShrink: 0, flexGrow: 0, marginTop: '0px' }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
           </button>
