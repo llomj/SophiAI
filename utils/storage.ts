@@ -16,6 +16,7 @@ export const saveSophiData = (data: Partial<SophiData>) => {
       activeContextNoteId: data.activeContextNoteId,
       personaAugmentations: data.personaAugmentations, // This should only contain USER patches now
       userPrompt: data.userPrompt,
+      userLog: data.userLog,
       customPersonas: data.customPersonas,
       emojiMode: data.emojiMode
     };
@@ -44,6 +45,7 @@ export const loadSophiData = (): SophiData => {
     personaAugmentations: {}, 
     userPersonality: USER_LOG_DATA,
     userPrompt: USER_IDENTITY_DATA,
+    userLog: USER_LOG_DATA,
     customPersonas: [],
     emojiMode: false
   };
@@ -52,6 +54,10 @@ export const loadSophiData = (): SophiData => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
+      // Ensure userLog exists (for backward compatibility)
+      if (!parsed.userLog) {
+        parsed.userLog = USER_LOG_DATA;
+      }
       return { ...defaultData, ...parsed };
     }
   } catch (e) {

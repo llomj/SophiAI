@@ -792,6 +792,64 @@ const App: React.FC = () => {
 
           {activeTab === 'graph' && <ConceptMap concepts={archive.concepts} conversations={archive.conversations} onConceptClick={() => {}} onResumeConversation={(id) => { setCurrentConversationId(id); setActiveTab('chat'); }} />}
           
+          {activeTab === 'userlog' && (
+            <div className="h-full p-4 lg:p-12 animate-in fade-in overflow-y-auto custom-scrollbar">
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="bg-[#0a0b10] border border-amber-500/20 rounded-sm p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="mono text-amber-400 font-bold uppercase tracking-widest text-base mb-1">Historical_Archive_Log</h2>
+                      <p className="text-xs text-slate-500 mono">Permanent memory storage for critical conversation summaries</p>
+                    </div>
+                  </div>
+                  <div className="bg-[#05060b] border border-slate-800 p-4 rounded-sm">
+                    <p className="text-[10px] mono text-slate-600 uppercase tracking-widest mb-2">Purpose:</p>
+                    <ul className="text-xs text-slate-400 space-y-1.5 ml-4 list-disc serif">
+                      <li>Store important conversation summaries or insights</li>
+                      <li>Create a permanent record that survives system resets</li>
+                      <li>Allow AI personas to reference your conversation history</li>
+                      <li>Build context for future philosophical discussions</li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="bg-[#0a0b10] border border-slate-800 rounded-sm flex flex-col">
+                  <div className="p-4 border-b border-slate-800 mono text-[10px] text-amber-400 uppercase tracking-widest">
+                    Archive_Entry
+                  </div>
+                  <textarea 
+                    className="flex-1 min-h-[500px] w-full bg-transparent p-6 mono text-sm text-slate-300 outline-none resize-none leading-relaxed"
+                    placeholder={`[HISTORICAL_ARCHIVE_001]
+- SUMMARY: Enter a summary of important conversations or insights
+- OUTCOME: What conclusions or discoveries were made
+- STATUS: Current state or follow-up actions needed
+- NOTES: Additional context or observations
+
+[HISTORICAL_ARCHIVE_002]
+- SUMMARY: Add more entries as needed
+- ...`}
+                    value={archive.userLog || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setArchive(prev => {
+                        if (!prev) return null;
+                        return { ...prev, userLog: val };
+                      });
+                    }}
+                  />
+                </div>
+                <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm">
+                  <p className="text-[10px] mono text-slate-600 uppercase tracking-widest mb-2">How to Use:</p>
+                  <ol className="text-xs text-slate-400 space-y-1.5 ml-4 list-decimal serif">
+                    <li>After significant conversations, summarize key points here</li>
+                    <li>Use the format: [HISTORICAL_ARCHIVE_XXX] for each entry</li>
+                    <li>Include summaries, outcomes, and status for each entry</li>
+                    <li>This log persists across sessions and can be referenced by AI personas</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          )}
+
           {(activeTab === 'forge' || activeTab === 'userprompt') && (
             <div className="h-full p-4 lg:p-12 animate-in fade-in overflow-y-auto custom-scrollbar">
               {activeTab === 'forge' ? (

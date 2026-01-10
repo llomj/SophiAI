@@ -206,6 +206,7 @@ export interface SophiData {
   personaAugmentations: Partial<Record<string, string>>;
   userPersonality: string;
   userPrompt: string;
+  userLog?: string;
   customPersonas: CustomPersona[];
   emojiMode: boolean;
 }
