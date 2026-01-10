@@ -120,6 +120,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handlePersonaSelect = (p: string) => {
+    console.log('Selecting persona:', p); // Debug log
+    if (!p || typeof p !== 'string') {
+      console.error('Invalid persona:', p);
+      return;
+    }
     onPersonaChange(p);
     if (window.innerWidth < 1024) onToggle?.();
   };

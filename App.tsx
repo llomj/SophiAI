@@ -232,6 +232,11 @@ const App: React.FC = () => {
   }, [activePersona, activePersonas, currentConversationId, archive]);
 
   const handlePersonaChange = (p: string) => {
+    console.log('handlePersonaChange called with:', p); // Debug log
+    if (!p || typeof p !== 'string') {
+      console.error('Invalid persona in handlePersonaChange:', p);
+      return;
+    }
     setActivePersona(p);
     // Add persona to activePersonas if not already present (multi-persona support)
     setActivePersonas(prev => {
@@ -635,7 +640,8 @@ const App: React.FC = () => {
               onPersonasChange={setActivePersonas}
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
-              onToggleSidebar={() => setIsSidebarOpen(true)}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+              onOpenSidebar={() => setIsSidebarOpen(true)}
               customPersonas={archive.customPersonas}
             />
           )}

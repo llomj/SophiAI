@@ -12,6 +12,7 @@ interface ChatWindowProps {
   onSendMessage: (text: string) => void;
   isLoading: boolean;
   onToggleSidebar?: () => void;
+  onOpenSidebar?: () => void;
   activeNote?: Note;
   customPersonas?: CustomPersona[];
 }
@@ -53,6 +54,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage, 
   isLoading, 
   onToggleSidebar,
+  onOpenSidebar,
   activeNote,
   customPersonas = []
 }) => {
@@ -272,9 +274,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               })}
               {onPersonasChange && (
                 <button
-                  onClick={onToggleSidebar}
+                  onClick={() => {
+                    // Open sidebar for persona selection (if available, use onOpenSidebar, otherwise toggle)
+                    if (onOpenSidebar) {
+                      onOpenSidebar();
+                    } else if (onToggleSidebar) {
+                      // On mobile, toggle will open it
+                      if (window.innerWidth < 1024) {
+                        onToggleSidebar();
+                      }
+                      // On desktop, sidebar should already be visible
+                    }
+                  }}
                   className="px-2 py-1 text-xs mono text-cyan-400 border border-cyan-500/30 rounded-sm hover:bg-cyan-500/10 transition-all"
-                  title="Add more personas"
+                  title="Click a persona in the sidebar to add it"
                 >
                   + Add
                 </button>
