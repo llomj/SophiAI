@@ -156,8 +156,11 @@ export const getPhilosophicalResponse = async (
   }
 };
 
-export const extractConceptsFromText = async (conversationText: string, existingConceptLabels: string[]): Promise<Partial<Concept>[]> => {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+export const extractConceptsFromText = async (conversationText: string, existingConceptLabels: string[], conversationId?: string): Promise<Partial<Concept>[]> => {
+  // Check for user-provided API key first, then fallback to environment variable (dev only)
+  const userApiKey = loadApiKey();
+  const apiKey = userApiKey || (process.env.API_KEY && process.env.API_KEY !== 'null' ? process.env.API_KEY : null) || (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'null' ? process.env.GEMINI_API_KEY : null);
+  
   if (!apiKey) {
     console.error("API Key is missing for concept extraction!");
     return [];
@@ -165,7 +168,7 @@ export const extractConceptsFromText = async (conversationText: string, existing
   const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash-latest',
       contents: `Analyze the following philosophical dialogue and extract exactly 3 key concepts. 
       Format as JSON. 
       Assign a category like 'ETHICS', 'METAPHYSICS', 'LOGIC', 'POLITICAL', or 'EXISTENTIAL'.
@@ -192,7 +195,15 @@ export const extractConceptsFromText = async (conversationText: string, existing
         }
       }
     });
-    return JSON.parse(response.text?.trim() || "[]");
+    const extracted = JSON.parse(response.text?.trim() || "[]");
+    // Add conversation ID to each concept's connections
+    if (conversationId) {
+      return extracted.map((c: Partial<Concept>) => ({
+        ...c,
+        connections: [conversationId]
+      }));
+    }
+    return extracted;
   } catch (error) { 
     console.error("Extraction error:", error);
     return []; 

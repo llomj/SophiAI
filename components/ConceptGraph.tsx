@@ -33,7 +33,7 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, conversations, onCo
     return conversations.filter(c => selectedConcept.connections.includes(c.id));
   }, [conversations, selectedConcept]);
 
-  if (concepts.length === 0) {
+  if (conversations.length === 0 && concepts.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4 opacity-30">
         <div className="w-16 h-16 border border-slate-700 rounded-sm flex items-center justify-center">
@@ -41,8 +41,8 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, conversations, onCo
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
         </div>
-        <p className="mono uppercase tracking-[0.3em] text-xs">No Matrix Nodes Detected</p>
-        <p className="text-[10px] mono max-w-xs leading-relaxed">Dialogues in the chat terminal will automatically populate this semantic landscape.</p>
+        <p className="mono uppercase tracking-[0.3em] text-xs">No Conversations Yet</p>
+        <p className="text-[10px] mono max-w-xs leading-relaxed">Start chatting to create conversations. The map will automatically populate with your dialogues and extracted concepts.</p>
       </div>
     );
   }
@@ -71,35 +71,61 @@ const ConceptMap: React.FC<ConceptGraphProps> = ({ concepts, conversations, onCo
 
       {/* Main Map View - NotebookLM-style Chat Mapping */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 bg-[#05060b]">
-        {/* Show conversations as primary nodes in map view */}
-        <div className="mb-6">
-          <h3 className="mono text-sm font-bold text-cyan-400 uppercase tracking-wider mb-4">CONVERSATION MAP</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {conversations.map(conv => (
-              <div
-                key={conv.id}
-                onClick={() => onResumeConversation?.(conv.id)}
-                className="p-5 rounded-sm border cursor-pointer transition-all duration-300 relative group bg-[#0a0b10] border-slate-800 hover:border-cyan-500/50 hover:bg-[#0e101a] hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]"
-              >
-                <div className="mb-2">
-                  <span className="text-[8px] mono font-bold uppercase tracking-widest text-slate-600 mb-1 block">CHAT_NODE</span>
-                  <h4 className="text-base font-bold mono uppercase tracking-tight text-slate-200 group-hover:text-cyan-400">
-                    {conv.title}
-                  </h4>
-                </div>
-                <p className="text-xs text-slate-500 mono mb-3 line-clamp-2">
-                  {conv.messages.length} messages • {new Date(conv.updatedAt).toLocaleDateString()}
-                </p>
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800">
-                  <span className="text-[9px] mono text-cyan-500/70 uppercase">{conv.persona}</span>
-                  <svg className="w-4 h-4 text-slate-600 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </div>
-              </div>
-            ))}
+        {/* Show conversations as primary nodes in map view - NotebookLM style */}
+        {conversations.length > 0 && (
+          <div className="mb-8">
+            <h3 className="mono text-sm font-bold text-cyan-400 uppercase tracking-wider mb-4 flex items-center space-x-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+              <span>CONVERSATION_LOGS</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {conversations.map(conv => {
+                const lastMessage = conv.messages[conv.messages.length - 1];
+                const preview = lastMessage?.content || "No messages yet";
+                const personas = conv.personas && conv.personas.length > 0 ? conv.personas : [conv.persona];
+                
+                return (
+                  <button
+                    key={conv.id}
+                    onClick={() => onResumeConversation?.(conv.id)}
+                    className="p-5 rounded-sm border border-slate-800 bg-[#0a0b10] hover:border-cyan-500/30 hover:bg-[#0e101a] transition-all duration-300 relative group flex flex-col h-full text-left"
+                  >
+                    <div className="mb-3">
+                      <span className="text-[8px] mono font-bold uppercase tracking-widest text-slate-600 mb-1 block">CONVERSATION_LOG</span>
+                      <h4 className="text-sm lg:text-base font-bold mono uppercase tracking-tight text-slate-200 group-hover:text-cyan-400 line-clamp-2">
+                        {conv.title}
+                      </h4>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed font-serif italic line-clamp-3 mb-4 flex-1">
+                      {preview}
+                    </p>
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
+                      <div className="flex items-center space-x-2 flex-wrap gap-1">
+                        {personas.slice(0, 2).map((p, idx) => (
+                          <div key={idx} className="text-[9px] px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-500 rounded mono">
+                            {p.toUpperCase()}
+                          </div>
+                        ))}
+                        {personas.length > 2 && (
+                          <div className="text-[9px] px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-500 rounded mono">
+                            +{personas.length - 2}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-[9px] mono text-slate-600 font-bold tracking-widest uppercase group-hover:text-cyan-500 transition-colors">
+                        RESUME_LOG
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-[8px] mono text-slate-700">
+                      <span>{conv.messages.length} messages</span>
+                      <span>{new Date(conv.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
         
         {/* Concepts section */}
         {concepts.length > 0 && (

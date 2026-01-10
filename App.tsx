@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Persona, Conversation, Message, SophiData, Note, Concept, CustomPersona } from './types';
 import { loadSophiData, saveSophiData, exportToCSV, saveApiKey, loadApiKey } from './utils/storage';
-import { getPhilosophicalResponse, getPersonaDNA } from './services/geminiService';
+import { getPhilosophicalResponse, getPersonaDNA, extractConceptsFromText } from './services/geminiService';
 import { LOGICAL_FALLACIES } from './utils/fallacies';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
@@ -196,18 +196,72 @@ const App: React.FC = () => {
 
       setArchive(prev => {
         if (!prev) return null;
+        const updated = prev.conversations.map(c => 
+          c.id === currentId 
+            ? { 
+                ...c, 
+                messages: [...c.messages, ...assistantMessages], 
+                updatedAt: Date.now(),
+                personas: personasToRespond // Save active personas to conversation
+              } 
+            : c
+        );
+        
+        // Extract concepts from conversation asynchronously (don't block UI)
+        const currentConv = updated.find(c => c.id === currentId);
+        if (currentConv && currentConv.messages.length >= 4) { // Extract after a few messages
+          const conversationText = currentConv.messages.map(m => `${m.role}: ${m.content}`).join('\n\n');
+          const existingLabels = prev.concepts.map(c => c.label);
+          
+          extractConceptsFromText(conversationText, existingLabels, currentId).then(newConcepts => {
+            if (newConcepts.length > 0) {
+              setArchive(prevArchive => {
+                if (!prevArchive) return null;
+                const existingConceptIds = new Set(prevArchive.concepts.map(c => c.label.toLowerCase()));
+                const conceptsToAdd: Concept[] = [];
+                
+                newConcepts.forEach(partial => {
+                  const labelLower = partial.label?.toLowerCase();
+                  if (labelLower && !existingConceptIds.has(labelLower)) {
+                    conceptsToAdd.push({
+                      id: crypto.randomUUID(),
+                      label: partial.label || '',
+                      description: partial.description || '',
+                      importance: partial.importance || 3,
+                      category: partial.category || 'GENERAL',
+                      connections: partial.connections || [currentId]
+                    });
+                    existingConceptIds.add(labelLower);
+                  } else if (labelLower && existingConceptIds.has(labelLower)) {
+                    // Update existing concept to include this conversation
+                    const existing = prevArchive.concepts.find(c => c.label.toLowerCase() === labelLower);
+                    if (existing && !existing.connections.includes(currentId)) {
+                      existing.connections.push(currentId);
+                    }
+                  }
+                });
+                
+                return {
+                  ...prevArchive,
+                  concepts: [...prevArchive.concepts, ...conceptsToAdd].map(c => {
+                    if (c.connections.includes(currentId)) return c;
+                    const matching = newConcepts.find(nc => nc.label?.toLowerCase() === c.label.toLowerCase());
+                    if (matching && !c.connections.includes(currentId)) {
+                      return { ...c, connections: [...c.connections, currentId] };
+                    }
+                    return c;
+                  })
+                };
+              });
+            }
+          }).catch(err => {
+            console.error("Concept extraction failed:", err);
+          });
+        }
+        
         return {
           ...prev,
-          conversations: prev.conversations.map(c => 
-            c.id === currentId 
-              ? { 
-                  ...c, 
-                  messages: [...c.messages, ...assistantMessages], 
-                  updatedAt: Date.now(),
-                  personas: personasToRespond // Save active personas to conversation
-                } 
-              : c
-          )
+          conversations: updated
         };
       });
     } catch (e) {
