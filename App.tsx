@@ -183,11 +183,183 @@ const App: React.FC = () => {
   return (
     <div className="flex h-screen w-full bg-[#05060b] text-slate-300 overflow-hidden overflow-x-hidden relative font-sans touch-none lg:touch-auto" style={{ maxWidth: '100%', width: '100%', height: '100vh', height: '-webkit-fill-available', overflowX: 'hidden', position: 'fixed', left: 0, right: 0, top: 0 }}>
       {isHelpOpen && (
-        <div className="fixed inset-0 z-[150] bg-black/95 p-6 flex items-center justify-center animate-in fade-in" onClick={() => setIsHelpOpen(false)}>
-           <div className="max-w-md bg-[#0a0b10] border border-cyan-500/20 p-8 space-y-4">
-              <h2 className="mono text-cyan-400 font-bold uppercase tracking-widest text-sm">System Operations</h2>
-              <p className="text-xs text-slate-400 leading-relaxed italic serif">Engage the reasoning matrices. Your dialectic sessions are archived locally for concept mapping.</p>
-              <button className="w-full py-3 bg-cyan-500 text-slate-950 mono text-[10px] font-bold uppercase">Resume Session</button>
+        <div className="fixed inset-0 z-[150] bg-black/95 p-4 lg:p-6 flex items-center justify-center animate-in fade-in" onClick={(e) => {
+          if (e.target === e.currentTarget) setIsHelpOpen(false);
+        }}>
+           <div className="max-w-4xl w-full max-h-[90vh] bg-[#0a0b10] border border-cyan-500/20 rounded-sm shadow-2xl overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-slate-800 bg-black/40 flex items-center justify-between">
+                <div>
+                  <h2 className="mono text-cyan-400 font-bold uppercase tracking-widest text-lg">System Operations Manual</h2>
+                  <p className="text-xs text-slate-500 mono uppercase tracking-wider mt-1">Neural Interface Documentation</p>
+                </div>
+                <button onClick={() => setIsHelpOpen(false)} className="p-2 text-slate-500 hover:text-white transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+                {/* CHAT */}
+                <div className="space-y-3 border-l-4 border-cyan-500/50 pl-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-cyan-500/10 border border-cyan-500/30 rounded-sm flex items-center justify-center">
+                      <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    </div>
+                    <div>
+                      <h3 className="mono text-cyan-400 font-bold uppercase tracking-widest text-base">CHAT</h3>
+                      <p className="text-xs text-slate-400 mono uppercase tracking-tight">Dialogue Terminal</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-300 leading-relaxed serif">
+                      The primary interface for engaging with philosophical AI matrices. Conduct deep dialectical exchanges with various philosophical personas, from Stoic sages to quantum physicists.
+                    </p>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">Use Cases:</p>
+                      <ul className="text-xs text-slate-400 space-y-1.5 ml-4 list-disc serif">
+                        <li>Engage in Socratic dialogues to explore ethical dilemmas</li>
+                        <li>Debate metaphysical questions with different philosophical frameworks</li>
+                        <li>Get explanations of complex philosophical concepts</li>
+                        <li>Test logical arguments and identify fallacies</li>
+                        <li>Explore thought experiments and counterfactuals</li>
+                      </ul>
+                    </div>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">How To Use:</p>
+                      <ol className="text-xs text-slate-400 space-y-1.5 ml-4 list-decimal serif">
+                        <li>Select a matrix persona from the sidebar (TJump, Stoic, etc.)</li>
+                        <li>Type your question or statement in the "SEND_INPUT..." field</li>
+                        <li>Press Enter (>>) or click the send button to submit</li>
+                        <li>View responses with highlighted logical fallacies or inconsistencies</li>
+                        <li>Click the speaker icon next to messages for text-to-speech</li>
+                        <li>Use the microphone icon for voice input</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                {/* MAP */}
+                <div className="space-y-3 border-l-4 border-cyan-500/50 pl-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-cyan-500/10 border border-cyan-500/30 rounded-sm flex items-center justify-center">
+                      <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                    </div>
+                    <div>
+                      <h3 className="mono text-cyan-400 font-bold uppercase tracking-widest text-base">MAP</h3>
+                      <p className="text-xs text-slate-400 mono uppercase tracking-tight">Conversation Landscape</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-300 leading-relaxed serif">
+                      Visualize your conversation archive in a NotebookLM-style map. Navigate through all your dialogues, see relationships between concepts, and quickly resume any previous conversation thread.
+                    </p>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">Use Cases:</p>
+                      <ul className="text-xs text-slate-400 space-y-1.5 ml-4 list-disc serif">
+                        <li>Browse all your past philosophical conversations</li>
+                        <li>Find specific discussions by topic or concept</li>
+                        <li>Resume interrupted dialogues seamlessly</li>
+                        <li>View concept connections and relationships</li>
+                        <li>Understand the evolution of ideas across sessions</li>
+                      </ul>
+                    </div>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">How To Use:</p>
+                      <ol className="text-xs text-slate-400 space-y-1.5 ml-4 list-decimal serif">
+                        <li>Click the "map" tab in the header navigation</li>
+                        <li>View conversation cards in a grid layout</li>
+                        <li>Each card shows: title, message count, date, and matrix persona</li>
+                        <li>Click any conversation card to resume that dialogue</li>
+                        <li>Concepts are displayed below conversations if available</li>
+                        <li>Use the sidebar to filter by concept categories</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                {/* FORGE */}
+                <div className="space-y-3 border-l-4 border-cyan-500/50 pl-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-cyan-500/10 border border-cyan-500/30 rounded-sm flex items-center justify-center">
+                      <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                    </div>
+                    <div>
+                      <h3 className="mono text-cyan-400 font-bold uppercase tracking-widest text-base">FORGE</h3>
+                      <p className="text-xs text-slate-400 mono uppercase tracking-tight">Matrix DNA Editor</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-300 leading-relaxed serif">
+                      Customize and augment the core behavior of any matrix persona. Modify the underlying logical framework, add specific instructions, or create hybrid philosophical approaches by editing the Matrix DNA directly.
+                    </p>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">Use Cases:</p>
+                      <ul className="text-xs text-slate-400 space-y-1.5 ml-4 list-disc serif">
+                        <li>Fine-tune a persona's reasoning style or focus areas</li>
+                        <li>Add domain-specific knowledge or constraints</li>
+                        <li>Create hybrid philosophical frameworks</li>
+                        <li>Override default behaviors for specific scenarios</li>
+                        <li>Experiment with different logical systems</li>
+                      </ul>
+                    </div>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">How To Use:</p>
+                      <ol className="text-xs text-slate-400 space-y-1.5 ml-4 list-decimal serif">
+                        <li>Select the matrix persona you want to modify from the sidebar</li>
+                        <li>Click the "forge" tab in the header</li>
+                        <li>The editor shows: "Logic_Forge: [PersonaName]"</li>
+                        <li>Type your custom instructions or augmentations</li>
+                        <li>Changes are saved automatically and applied to all future conversations</li>
+                        <li>Your augmentations are combined with the base Matrix DNA</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                {/* NOTES */}
+                <div className="space-y-3 border-l-4 border-cyan-500/50 pl-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-cyan-500/10 border border-cyan-500/30 rounded-sm flex items-center justify-center">
+                      <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <div>
+                      <h3 className="mono text-cyan-400 font-bold uppercase tracking-widest text-base">NOTES</h3>
+                      <p className="text-xs text-slate-400 mono uppercase tracking-tight">Knowledge Repository</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-slate-300 leading-relaxed serif">
+                      Capture insights, summaries, and key ideas from your conversations. Notes can be linked to specific conversations or concepts, creating a persistent knowledge base that enhances future dialogues.
+                    </p>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">Use Cases:</p>
+                      <ul className="text-xs text-slate-400 space-y-1.5 ml-4 list-disc serif">
+                        <li>Save important insights from conversations</li>
+                        <li>Create summaries of complex philosophical arguments</li>
+                        <li>Build a personal knowledge base over time</li>
+                        <li>Link notes to specific conversations for context</li>
+                        <li>Review and refine your understanding of concepts</li>
+                      </ul>
+                    </div>
+                    <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-sm space-y-2">
+                      <p className="text-xs mono text-cyan-400 uppercase tracking-wider font-bold">How To Use:</p>
+                      <ol className="text-xs text-slate-400 space-y-1.5 ml-4 list-decimal serif">
+                        <li>Click the "notes" tab in the header navigation</li>
+                        <li>Create new notes by clicking the "+" button</li>
+                        <li>Write your notes with markdown support</li>
+                        <li>Link notes to conversations for context (if available)</li>
+                        <li>Notes are automatically saved and can be referenced in future chats</li>
+                        <li>Search through notes using the search functionality</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 border-t border-slate-800 bg-black/40 flex justify-end">
+                <button onClick={() => setIsHelpOpen(false)} className="px-6 py-3 bg-cyan-500 text-slate-950 mono text-xs font-bold uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                  Close
+                </button>
+              </div>
            </div>
         </div>
       )}
