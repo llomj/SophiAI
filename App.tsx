@@ -189,8 +189,8 @@ const App: React.FC = () => {
            <div className="max-w-4xl w-full max-h-[90vh] bg-[#0a0b10] border border-cyan-500/20 rounded-sm shadow-2xl overflow-hidden flex flex-col">
               <div className="p-6 border-b border-slate-800 bg-black/40 flex items-center justify-between">
                 <div>
-                  <h2 className="mono text-cyan-400 font-bold uppercase tracking-widest text-lg">System Operations Manual</h2>
-                  <p className="text-xs text-slate-500 mono uppercase tracking-wider mt-1">Neural Interface Documentation</p>
+                  <h2 className="mono text-cyan-400 font-bold uppercase tracking-widest text-lg">System Information Protocol</h2>
+                  <p className="text-xs text-slate-500 mono uppercase tracking-wider mt-1">Function Documentation & Usage Guide</p>
                 </div>
                 <button onClick={() => setIsHelpOpen(false)} className="p-2 text-slate-500 hover:text-white transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
