@@ -41,19 +41,17 @@ export const getPhilosophicalResponse = async (
   customPersonas: CustomPersona[] = [],
   emojiMode: boolean = false
 ): Promise<{ text: string; contradictionDetected: boolean; fallacies: Fallacy[] }> => {
-  // Check for user-provided API key first, then fallback to environment variable
+  // Check for user-provided API key first, then fallback to environment variable (dev only)
   const userApiKey = loadApiKey();
-  const apiKey = userApiKey || process.env.API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = userApiKey || (process.env.API_KEY && process.env.API_KEY !== 'null' ? process.env.API_KEY : null) || (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'null' ? process.env.GEMINI_API_KEY : null);
   
   if (!apiKey || apiKey === 'null' || apiKey === 'undefined') {
     console.error("❌ API Key is missing!");
-    console.error("Please create a .env.local file in the project root with:");
-    console.error("GEMINI_API_KEY=your_api_key_here");
+    console.error("Please set your API key using the 🔑 key icon in the sidebar.");
     console.error("Get your API key from: https://aistudio.google.com/app/apikey");
-    console.error("Then restart the dev server with: npm run dev");
     
     return { 
-      text: "🔑 API key not configured.\n\nPlease:\n1. Create a .env.local file in the project root\n2. Add: GEMINI_API_KEY=your_api_key_here\n3. Get your key from: https://aistudio.google.com/app/apikey\n4. Restart the dev server", 
+      text: "🔑 **API Key Required**\n\nTo use SophiAI, you need to set your own Google Gemini API key.\n\n**Steps:**\n1. Click the 🔑 key icon in the sidebar\n2. Get your API key from: https://aistudio.google.com/app/apikey\n3. Enter your API key in the configuration modal\n4. Click 'Save & Reload'\n\n**Why?**\n- Your API key is stored securely in your browser only\n- Each user needs their own key for privacy and cost control\n- Your conversations remain completely private\n\n**Get Started:** Click the 🔑 icon in the sidebar →", 
       contradictionDetected: false, 
       fallacies: [] 
     };

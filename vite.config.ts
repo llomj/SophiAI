@@ -6,16 +6,17 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => {
   // Load env files - Vite automatically loads .env, .env.local, .env.[mode], .env.[mode].local
   const env = loadEnv(mode, process.cwd(), '');
-  // Fallback to hardcoded key for production builds (temporary - should use GitHub Secrets)
-  const apiKey = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || 'AIzaSyCDaBAfP2zefxS4x5JkEu6UbS5Koq3N4HE';
+  // Only use environment variable for local development - production requires user to set their own key
+  const apiKey = env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || null;
   
-  if (!apiKey) {
-    console.warn('\n⚠️  ⚠️  ⚠️  WARNING: GEMINI_API_KEY not found! ⚠️  ⚠️  ⚠️');
-    console.warn('Please create a .env.local file in the project root with:');
+  if (!apiKey && mode === 'development') {
+    console.warn('\n⚠️  WARNING: GEMINI_API_KEY not found for local development! ⚠️');
+    console.warn('For local development, create a .env.local file with:');
     console.warn('GEMINI_API_KEY=your_api_key_here\n');
+    console.warn('For production: Users must set their own API key via the app interface.');
     console.warn('Get your API key from: https://aistudio.google.com/app/apikey\n');
-  } else {
-    console.log('✅ API Key loaded successfully');
+  } else if (apiKey && mode === 'development') {
+    console.log('✅ API Key loaded for local development');
   }
   
   return {
@@ -79,7 +80,8 @@ export default defineConfig(({ mode }) => {
       })
     ],
     define: {
-      // Use null instead of empty string or undefined to make checking easier
+      // Use null for production - users must set their own API key
+      // Only use env key for local development
       'process.env.API_KEY': apiKey ? JSON.stringify(apiKey) : 'null',
       'process.env.GEMINI_API_KEY': apiKey ? JSON.stringify(apiKey) : 'null'
     },

@@ -35,6 +35,15 @@ const App: React.FC = () => {
       const savedApiKey = loadApiKey();
       if (savedApiKey) {
         setApiKeyInput(savedApiKey);
+      } else {
+        // Check if environment variable is available (dev only)
+        const envKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+        if (!envKey || envKey === 'null' || envKey === 'undefined') {
+          // No API key found - auto-open modal after a short delay
+          setTimeout(() => {
+            setIsApiKeyModalOpen(true);
+          }, 1000);
+        }
       }
       
       // Delay finishing the loading animation to let the browser breathe
@@ -504,6 +513,44 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 flex flex-col min-w-0 h-full bg-[#05060b] overflow-x-hidden">
+        {/* API Key Warning Banner */}
+        {(() => {
+          const userApiKey = loadApiKey();
+          const envKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+          const hasApiKey = userApiKey || (envKey && envKey !== 'null' && envKey !== 'undefined');
+          
+          if (!hasApiKey && !isApiKeyModalOpen) {
+            return (
+              <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 flex items-center justify-between shrink-0">
+                <div className="flex items-center space-x-3 flex-1">
+                  <div className="flex-shrink-0">
+                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm mono text-amber-400 font-bold uppercase tracking-wider">
+                      API Key Required
+                    </p>
+                    <p className="text-xs text-slate-400 serif mt-1">
+                      Set your Google Gemini API key to start chatting. Click the 🔑 icon in the sidebar.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setApiKeyInput('');
+                    setIsApiKeyModalOpen(true);
+                  }}
+                  className="ml-4 px-4 py-2 bg-amber-500 text-slate-950 mono text-xs font-bold uppercase tracking-widest hover:bg-amber-400 transition-all rounded-sm shrink-0"
+                >
+                  Set Key
+                </button>
+              </div>
+            );
+          }
+          return null;
+        })()}
         <header className="pt-[env(safe-area-inset-top)] border-b border-slate-800 bg-[#0a0b10]/90 z-40 shrink-0">
           <div className="h-14 px-4 flex items-center overflow-x-hidden no-scrollbar space-x-2 flex-wrap" style={{ maxWidth: '100%', width: '100%' }}>
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-cyan-500 shrink-0">
