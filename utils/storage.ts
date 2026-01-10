@@ -88,8 +88,18 @@ const API_KEY_STORAGE = 'sophi_ai_api_key';
 
 export const saveApiKey = (apiKey: string): void => {
   try {
-    localStorage.setItem(API_KEY_STORAGE, apiKey);
-    console.log('✅ API Key saved successfully');
+    // Clean the API key: remove all whitespace, newlines, and quotes
+    const cleanedKey = apiKey.trim().replace(/[\r\n\t]/g, '').replace(/^["']|["']$/g, '');
+    
+    // Only save if the key is not empty
+    if (cleanedKey) {
+      localStorage.setItem(API_KEY_STORAGE, cleanedKey);
+      console.log('✅ API Key saved successfully, length:', cleanedKey.length);
+    } else {
+      // If empty, remove the key
+      localStorage.removeItem(API_KEY_STORAGE);
+      console.log('✅ API Key cleared');
+    }
   } catch (e) {
     console.error('❌ Failed to save API key:', e);
   }
@@ -97,7 +107,18 @@ export const saveApiKey = (apiKey: string): void => {
 
 export const loadApiKey = (): string | null => {
   try {
-    return localStorage.getItem(API_KEY_STORAGE);
+    const key = localStorage.getItem(API_KEY_STORAGE);
+    if (!key) return null;
+    
+    // Clean the key when loading (remove any accidental whitespace)
+    const cleanedKey = key.trim().replace(/[\r\n\t]/g, '');
+    
+    // Validate basic format (Google API keys typically start with AIza and are ~39 chars)
+    if (cleanedKey.length < 20 || (!cleanedKey.startsWith('AIza') && cleanedKey.length < 30)) {
+      console.warn('⚠️ API Key format looks invalid, but loading anyway');
+    }
+    
+    return cleanedKey || null;
   } catch (e) {
     console.error('❌ Failed to load API key:', e);
     return null;
