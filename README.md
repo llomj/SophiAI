@@ -1,4 +1,7 @@
-#this app is a philosophical app where user can converse with different DNA metric systems. App is customisable. API key required for app.
+#deployment
+https://llomj.github.io/SophiAI/
+
+#This app is a philosophical app where user can converse with different DNA metric systems. App is customisable. API key required for app.
 
 #AI agent tools used to build app. Google AI studio, Antigravity, cursor, opencode.
 
